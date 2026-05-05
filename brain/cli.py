@@ -162,38 +162,105 @@ def chat():
 
 @app.command()
 def summarize(
-    note: str = typer.Option(None, "--note", "-n", help="Path to a specific note"),
-    folder: str = typer.Option(None, "--folder", "-f", help="Folder to summarize"),
+    note: str = typer.Option(None, "--note", "-n", help="Path to a specific note (e.g. Projects/BankPrep.md)"),
+    folder: str = typer.Option(None, "--folder", "-f", help="Folder to summarize (e.g. Projects/)"),
+    since: str = typer.Option(None, "--since", "-s", help="Filter by recency: 24h, 7d, 30d (folder only)"),
 ):
-    """Summarize a note or folder. (Phase 4 — coming soon)"""
-    console.print("\n[yellow]![/] [bold]summarize[/] is coming in Phase 4.\n")
+    """Summarize a note or an entire folder of notes."""
+    try:
+        from brain.commands.summarize import summarize_note, summarize_folder
+        from brain.config import VAULT_PATH
+        from brain.exceptions import VaultNotIndexed
+        from brain import db
+
+        if db.collection_stats()["total_chunks"] == 0:
+            raise VaultNotIndexed()
+
+        if note:
+            summarize_note(note, vault_path=VAULT_PATH)
+        elif folder:
+            summarize_folder(folder, since=since, vault_path=VAULT_PATH)
+        else:
+            console.print(
+                "\n[yellow]![/] Provide [cyan]--note[/] or [cyan]--folder[/]\n"
+                "  Example: [dim]brain summarize --note Projects/BankPrep.md[/]\n"
+                "  Example: [dim]brain summarize --folder Projects/[/]\n"
+                "  Example: [dim]brain summarize --folder 'Daily Notes/' --since 7d[/]\n"
+            )
+    except BrainError as e:
+        _handle_error(e)
 
 
 @app.command()
 def related(
-    note: str = typer.Argument(..., help="Note path to find related notes for"),
-    top: int = typer.Option(5, "--top", "-k", help="Number of related notes"),
+    note: str = typer.Argument(..., help="Note name or path (e.g. 'Linux/arch-setup' or just 'arch-setup')"),
+    top: int = typer.Option(5, "--top", "-k", help="Number of related notes to return"),
 ):
-    """Find semantically related notes. (Phase 5 — coming soon)"""
-    console.print("\n[yellow]![/] [bold]related[/] is coming in Phase 5.\n")
+    """Find semantically related notes for any given note."""
+    try:
+        from brain.commands.related import find_related
+        from brain.config import VAULT_PATH
+        from brain.exceptions import VaultNotIndexed
+        from brain import db
+
+        if db.collection_stats()["total_chunks"] == 0:
+            raise VaultNotIndexed()
+        find_related(note, top=top, vault_path=VAULT_PATH)
+    except BrainError as e:
+        _handle_error(e)
 
 
 @app.command()
 def tag(
-    dry_run: bool = typer.Option(True, "--dry-run/--apply", help="Preview or apply tags"),
+    dry_run: bool = typer.Option(True, "--dry-run/--apply", help="Preview tags (dry-run) or write to frontmatter (apply)"),
     note: str = typer.Option(None, "--note", "-n", help="Tag a specific note only"),
 ):
-    """Auto-tag untagged notes using the LLM. (Phase 6 — coming soon)"""
-    console.print("\n[yellow]![/] [bold]tag[/] is coming in Phase 6.\n")
+    """Auto-tag untagged notes using the LLM.
+
+    \b
+    Examples:
+      brain tag                              # preview tags for all untagged notes
+      brain tag --apply                      # write tags to frontmatter
+      brain tag --note "Linux/VIm text editor"  # tag a specific note
+      brain tag --note "VIm" --apply         # tag and write immediately
+    """
+    try:
+        from brain.commands.tag import run_tag
+        from brain.config import VAULT_PATH
+        from brain.exceptions import VaultNotIndexed
+        from brain import db
+
+        if db.collection_stats()["total_chunks"] == 0:
+            raise VaultNotIndexed()
+        run_tag(note=note, dry_run=dry_run, vault_path=VAULT_PATH)
+    except BrainError as e:
+        _handle_error(e)
 
 
 @app.command()
 def digest(
-    since: str = typer.Option("24h", "--since", "-s", help="Time window: 24h, 7d, 30d"),
-    save: bool = typer.Option(False, "--save", help="Save digest as a new note"),
+    since: str = typer.Option("24h", "--since", "-s", help="Time window: 24h, 7d, 2w, 30d"),
+    save: bool = typer.Option(False, "--save", help="Save digest as a new note in vault"),
 ):
-    """Generate a digest of recently modified notes. (Phase 7 — coming soon)"""
-    console.print("\n[yellow]![/] [bold]digest[/] is coming in Phase 7.\n")
+    """Generate a digest of recently modified notes.
+
+    \b
+    Examples:
+      brain digest                  # notes from last 24 hours
+      brain digest --since 7d       # weekly digest
+      brain digest --since 7d --save  # save as new note in vault
+    """
+    try:
+        from brain.commands.digest import run_digest
+        from brain.config import VAULT_PATH
+        from brain.exceptions import VaultNotIndexed
+        from brain import db
+
+        if db.collection_stats()["total_chunks"] == 0:
+            raise VaultNotIndexed()
+        run_digest(since=since, save=save, vault_path=VAULT_PATH)
+    except BrainError as e:
+        _handle_error(e)
 
 
 if __name__ == "__main__":
