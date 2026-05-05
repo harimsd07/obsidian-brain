@@ -188,10 +188,10 @@ brain/
 - [x] Interactive chat with thinking phase
 - [x] File watcher for incremental re-indexing
 - [x] Setup wizard (`brain init`)
-- [ ] `brain summarize` — summarize a note or folder
-- [ ] `brain related` — find semantically related notes
-- [ ] `brain tag` — auto-tag untagged notes
-- [ ] `brain digest` — daily digest of recent notes
+- [x] `brain summarize` — summarize a note or folder
+- [x] `brain related` — find semantically related notes
+- [x] `brain tag` — auto-tag untagged notes
+- [x] `brain digest` — daily digest of recent notes
 - [ ] Persistent chat history
 - [ ] Hybrid search (semantic + BM25 keyword)
 - [ ] MCP server mode — use your vault in Claude Desktop / Cursor
