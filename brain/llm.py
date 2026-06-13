@@ -3,24 +3,26 @@ from brain.config import EMBED_MODEL, LLM_MODEL
 
 
 def embed(text: str) -> list[float]:
-    """Generate embedding — always uses Ollama locally."""
-    from brain.config import LLM_PROVIDER
+     """Generate embedding — tries Ollama first, then provider-specific."""
+     from brain.config import LLM_PROVIDER
 
-    # Try Ollama first (preferred for embeddings)
-    try:
-        response = ollama.embed(model=EMBED_MODEL, input=text)
-        return response["embeddings"][0]
-    except Exception as e:
-        # Ollama not running — fall back to provider-specific embedding
-        if LLM_PROVIDER == "gemini":
-            return _embed_gemini(text)
-        elif LLM_PROVIDER == "groq":
-            return _embed_groq(text)
-        else:
-            raise ConnectionError(
-                "Ollama is not running and no fallback provider configured. "
-                "Run 'ollama serve' or set BRAIN_LLM_PROVIDER=gemini/groq"
-            ) from e
+     # Try Ollama first (preferred for embeddings)
+     try:
+         response = ollama.embed(model=EMBED_MODEL, input=text)
+         return response["embeddings"][0]
+     except Exception as e:
+         # Ollama not running — fall back to provider-specific embedding
+         if LLM_PROVIDER == "gemini":
+             return _embed_gemini(text)
+         elif LLM_PROVIDER == "groq":
+             return _embed_groq(text)
+         elif LLM_PROVIDER == "nvidia-nim":
+             return _embed_nvidia_nim(text)
+         else:
+             raise ConnectionError(
+                 "Ollama is not running and no fallback provider configured. "
+                 "Run 'ollama serve' or set BRAIN_LLM_PROVIDER=gemini/groq/nvidia-nim"
+             ) from e
 
 
 def _embed_gemini(text: str) -> list[float]:
@@ -37,22 +39,49 @@ def _embed_gemini(text: str) -> list[float]:
 
 
 def _embed_groq(text: str) -> list[float]:
-    """
-    Groq doesn't offer an embedding API.
-    Falls back to a lightweight local model or raises a clear error.
-    """
-    # Try sentence-transformers as fallback (lightweight, no GPU needed)
-    try:
-        from sentence_transformers import SentenceTransformer
-        _model = SentenceTransformer("all-MiniLM-L6-v2")
-        return _model.encode(text).tolist()
-    except ImportError:
-        raise RuntimeError(
-            "Groq has no embedding API. Either:\n"
-            "  1. Run 'ollama serve' for local embeddings (recommended)\n"
-            "  2. pip install sentence-transformers (lightweight fallback)\n"
-            "  3. Set BRAIN_LLM_PROVIDER=gemini which has a free embedding API"
-        )
+     """
+     Groq doesn't offer an embedding API.
+     Falls back to a lightweight local model or raises a clear error.
+     """
+     # Try sentence-transformers as fallback (lightweight, no GPU needed)
+     try:
+         from sentence_transformers import SentenceTransformer
+         _model = SentenceTransformer("all-MiniLM-L6-v2")
+         return _model.encode(text).tolist()
+     except ImportError:
+         raise RuntimeError(
+             "Groq has no embedding API. Either:\n"
+             "  1. Run 'ollama serve' for local embeddings (recommended)\n"
+             "  2. pip install sentence-transformers (lightweight fallback)\n"
+             "  3. Set BRAIN_LLM_PROVIDER=gemini which has a free embedding API"
+         )
+
+
+def _embed_nvidia_nim(text: str) -> list[float]:
+     """Embed using NVIDIA NIM API."""
+     import requests
+     from brain.config import (
+         NVIDIA_NIM_API_KEY,
+         NVIDIA_NIM_BASE_URL,
+         NVIDIA_NIM_EMBED_MODEL,
+     )
+     
+     headers = {
+         "Authorization": f"Bearer {NVIDIA_NIM_API_KEY}",
+         "Content-Type": "application/json",
+     }
+     
+     payload = {
+         "input": [text],
+         "model": NVIDIA_NIM_EMBED_MODEL,
+     }
+     
+     endpoint = f"{NVIDIA_NIM_BASE_URL}/embeddings"
+     response = requests.post(endpoint, json=payload, headers=headers)
+     response.raise_for_status()
+     
+     data = response.json()
+     return data["data"][0]["embedding"]
 
 
 def embed_batch(texts: list[str]) -> list[list[float]]:
@@ -74,21 +103,72 @@ def _generate_ollama(messages: list[dict], stream: bool):
 
 
 def _generate_groq(messages: list[dict], stream: bool):
-    from groq import Groq
-    from brain.config import GROQ_API_KEY, GROQ_MODEL
-    client = Groq(api_key=GROQ_API_KEY)
-    response = client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=messages,
-        stream=stream,
-    )
-    if stream:
-        for chunk in response:
-            delta = chunk.choices[0].delta.content
-            if delta:
-                yield delta
-    else:
-        return response.choices[0].message.content
+     from groq import Groq
+     from brain.config import GROQ_API_KEY, GROQ_MODEL
+     client = Groq(api_key=GROQ_API_KEY)
+     response = client.chat.completions.create(
+         model=GROQ_MODEL,
+         messages=messages,
+         stream=stream,
+     )
+     if stream:
+         for chunk in response:
+             delta = chunk.choices[0].delta.content
+             if delta:
+                 yield delta
+     else:
+         return response.choices[0].message.content
+
+
+def _generate_nvidia_nim(messages: list[dict], stream: bool):
+     """Generate using NVIDIA NIM API."""
+     import requests
+     from brain.config import (
+         NVIDIA_NIM_API_KEY,
+         NVIDIA_NIM_BASE_URL,
+         NVIDIA_NIM_LLM_MODEL,
+     )
+     
+     headers = {
+         "Authorization": f"Bearer {NVIDIA_NIM_API_KEY}",
+         "Content-Type": "application/json",
+     }
+     
+     payload = {
+         "model": NVIDIA_NIM_LLM_MODEL,
+         "messages": messages,
+         "stream": stream,
+         "temperature": 0.7,
+         "top_p": 1.0,
+         "max_tokens": 1024,
+     }
+     
+     endpoint = f"{NVIDIA_NIM_BASE_URL}/chat/completions"
+     
+     if stream:
+         response = requests.post(endpoint, json=payload, headers=headers, stream=True)
+         response.raise_for_status()
+         
+         for line in response.iter_lines():
+             if line:
+                 line = line.decode("utf-8") if isinstance(line, bytes) else line
+                 if line.startswith("data: "):
+                     data = line[6:]
+                     if data == "[DONE]":
+                         break
+                     try:
+                         import json
+                         chunk_data = json.loads(data)
+                         delta = chunk_data.get("choices", [{}])[0].get("delta", {}).get("content", "")
+                         if delta:
+                             yield delta
+                     except (json.JSONDecodeError, KeyError, IndexError):
+                         pass
+     else:
+         response = requests.post(endpoint, json=payload, headers=headers)
+         response.raise_for_status()
+         data = response.json()
+         return data["choices"][0]["message"]["content"]
 
 
 def _generate_gemini(messages: list[dict], stream: bool):
@@ -126,24 +206,26 @@ def _generate_gemini(messages: list[dict], stream: bool):
 
 
 def generate(messages: list[dict], stream: bool = True):
-    """
-    Route to the correct LLM provider based on BRAIN_LLM_PROVIDER.
-    Yields text chunks if stream=True, returns full string if stream=False.
-    Falls back to Ollama if provider fails.
-    """
-    from brain.config import LLM_PROVIDER
-    try:
-        if LLM_PROVIDER == "groq":
-            yield from _generate_groq(messages, stream)
-        elif LLM_PROVIDER == "gemini":
-            yield from _generate_gemini(messages, stream)
-        else:
-            yield from _generate_ollama(messages, stream)
-    except Exception as e:
-        # Fallback to Ollama on any provider error
-        from rich.console import Console
-        Console().print(f"\n[yellow]Provider '{LLM_PROVIDER}' failed ({e}), falling back to Ollama...[/]")
-        yield from _generate_ollama(messages, stream)
+     """
+     Route to the correct LLM provider based on BRAIN_LLM_PROVIDER.
+     Yields text chunks if stream=True, returns full string if stream=False.
+     Falls back to Ollama if provider fails.
+     """
+     from brain.config import LLM_PROVIDER
+     try:
+         if LLM_PROVIDER == "groq":
+             yield from _generate_groq(messages, stream)
+         elif LLM_PROVIDER == "gemini":
+             yield from _generate_gemini(messages, stream)
+         elif LLM_PROVIDER == "nvidia-nim":
+             yield from _generate_nvidia_nim(messages, stream)
+         else:
+             yield from _generate_ollama(messages, stream)
+     except Exception as e:
+         # Fallback to Ollama on any provider error
+         from rich.console import Console
+         Console().print(f"\n[yellow]Provider '{LLM_PROVIDER}' failed ({e}), falling back to Ollama...[/]")
+         yield from _generate_ollama(messages, stream)
 
 
 def check_ollama_models() -> dict:

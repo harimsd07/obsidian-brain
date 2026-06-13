@@ -33,8 +33,14 @@ LLM_PROVIDER = os.getenv("BRAIN_LLM_PROVIDER", "ollama")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+NVIDIA_NIM_API_KEY = os.getenv("NVIDIA_NIM_API_KEY", "")
 
 # --- Provider-specific model names ---
 GROQ_MODEL = "llama-3.3-70b-versatile"
 GEMINI_MODEL = "gemini-2.0-flash"  
 GEMINI_EMBED_MODEL = "models/text-embedding-004"   # 768 dims, free tier
+
+# --- NVIDIA NIM API ---
+NVIDIA_NIM_BASE_URL = os.getenv("NVIDIA_NIM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+NVIDIA_NIM_LLM_MODEL = os.getenv("NVIDIA_NIM_LLM_MODEL", "meta/llama-3.1-70b-instruct")
+NVIDIA_NIM_EMBED_MODEL = os.getenv("NVIDIA_NIM_EMBED_MODEL", "nvidia/nv-embed-v1")

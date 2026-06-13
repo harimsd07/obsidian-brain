@@ -7,7 +7,7 @@ No cloud lock-in. No subscriptions. Your notes stay yours.
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Tests](https://img.shields.io/badge/Tests-80%2B-brightgreen)
-![Providers](https://img.shields.io/badge/Providers-Ollama%20%7C%20Groq%20%7C%20Gemini-purple)
+![Providers](https://img.shields.io/badge/Providers-Ollama%20%7C%20Groq%20%7C%20Gemini%20%7C%20NVIDIA%20NIM-purple)
 
 ---
 
@@ -51,7 +51,7 @@ Sources: AI-Agents.md  AI Agent System — Tech Stack Decisions.md
 - 📰 **`brain digest`** — daily/weekly digest of recent notes
 - 📋 **`brain list-notes`** — browse your indexed vault
 - 👁️ **`brain watch`** — file watcher, auto re-index on save
-- 🔀 **Multi-provider** — Ollama (local), Groq, Gemini
+- 🔀 **Multi-provider** — Ollama (local), Groq, Gemini, NVIDIA NIM
 - ⚡ **Thinking phase** — see the LLM reason before answering
 - 🏷️ **Frontmatter aware** — understands tags, aliases, wikilinks
 - 📍 **Source citations** — every answer shows which notes it came from
@@ -156,17 +156,18 @@ brain chat
 | Ollama (local) | Medium | Free forever | ❌ No | `ollama serve` |
 | Groq | ⚡ Fastest | Free tier | ✅ Yes | API key |
 | Gemini | Fast | Free tier | ✅ Yes | API key |
+| NVIDIA NIM | Very fast | Enterprise | ✅ Yes | API key |
 
 Switch providers anytime:
 
 ```bash
-export BRAIN_LLM_PROVIDER=groq     # or gemini, ollama
+export BRAIN_LLM_PROVIDER=groq         # or gemini, ollama, nvidia-nim
 brain chat
 ```
 
 > **Note:** Embedding always uses `nomic-embed-text` via Ollama locally.
-> If Ollama is not running, embedding falls back to Gemini (`text-embedding-004`)
-> or `sentence-transformers` if installed.
+> If Ollama is not running, embedding falls back to Gemini (`text-embedding-004`),
+> NVIDIA NIM (`nv-embed-v1`), or `sentence-transformers` if installed.
 
 ---
 
@@ -176,10 +177,34 @@ All config via `.env` in project root (created by `brain init`):
 
 ```bash
 BRAIN_VAULT_PATH=~/Documents/Obsidian/MyVault
-BRAIN_LLM_PROVIDER=ollama          # ollama | groq | gemini
+BRAIN_LLM_PROVIDER=ollama          # ollama | groq | gemini | nvidia-nim
 
 GROQ_API_KEY=your_key_here         # https://console.groq.com/keys
 GEMINI_API_KEY=your_key_here       # https://aistudio.google.com/app/apikey
+NVIDIA_NIM_API_KEY=your_key_here   # https://api.nvidia.com
+```
+
+### NVIDIA NIM Setup
+
+1. Get an API key from [NVIDIA API Gateway](https://api.nvidia.com)
+2. Set your key:
+```bash
+export NVIDIA_NIM_API_KEY=nvapi_xxxxx
+export BRAIN_LLM_PROVIDER=nvidia-nim
+brain chat
+```
+
+Or configure during `brain init` setup wizard.
+
+**Available NIM Models:**
+- **LLM:** `meta/llama-3.1-70b-instruct` (default), `mistralai/mixtral-8x22b-instruct-v0.1`, etc.
+- **Embedding:** `nvidia/nv-embed-v1` (default), `nvidia/nv-embed-qa-4`
+
+Override models in `.env`:
+```bash
+NVIDIA_NIM_LLM_MODEL=meta/llama-3.1-70b-instruct
+NVIDIA_NIM_EMBED_MODEL=nvidia/nv-embed-v1
+NVIDIA_NIM_BASE_URL=https://integrate.api.nvidia.com/v1
 ```
 
 Advanced config in `brain/config.py`:
@@ -201,7 +226,7 @@ obsidian-brain/
 │   ├── utils.py            # markdown parser, frontmatter, wikilinks
 │   ├── chunker.py          # heading + token-based chunking
 │   ├── db.py               # ChromaDB wrapper
-│   ├── llm.py              # Ollama / Groq / Gemini provider routing
+│   ├── llm.py              # Ollama / Groq / Gemini / NVIDIA NIM provider routing
 │   ├── ingest.py           # vault ingestion pipeline
 │   ├── watcher.py          # file watcher daemon
 │   ├── retriever.py        # semantic search
@@ -339,7 +364,7 @@ Run `brain ingest` to index the new digest note into the vault.
 
 - [x] Full vault ingestion with progress bar
 - [x] Semantic search via ChromaDB
-- [x] Multi-provider LLM (Ollama / Groq / Gemini)
+- [x] Multi-provider LLM (Ollama / Groq / Gemini / NVIDIA NIM)
 - [x] Interactive chat with thinking phase
 - [x] File watcher for incremental re-indexing
 - [x] Setup wizard (`brain init`)
