@@ -39,7 +39,7 @@
       "historyRoot": "/home/irah/.config/Code/User/History",
       "snapshotsScanned": 0,
       "filesWithChanges": 0,
-      "lastScanTime": "2026-06-13T14:35:16.967Z"
+      "lastScanTime": "2026-06-13T14:37:16.968Z"
     },
     "chatEditing": {
       "active": false,
@@ -60,5 +60,5 @@
   "errors": [
     "[2026-06-13T14:15:16.958Z] No workspaceStorage hash found for file:///home/irah/Desktop/Python/obsidian-brain"
   ],
-  "lastScanTime": "2026-06-13T14:35:16.967Z"
+  "lastScanTime": "2026-06-13T14:37:16.968Z"
 }

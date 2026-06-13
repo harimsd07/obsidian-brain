@@ -455,12 +455,12 @@ def list_notes(
             t = Table(box=box.SIMPLE, show_header=False, padding=(0, 2))
             t.add_column("Note", style="white")
             t.add_column("Path", style="dim")
-             for fp in sorted(fps):
-                 t.add_row(Path(fp).stem, fp)
-             console.print(t)
+            for fp in sorted(fps):
+                t.add_row(Path(fp).stem, fp)
+            console.print(t)
 
-     except BrainError as e:
-         _handle_error(e)
+    except BrainError as e:
+        _handle_error(e)
 
 
 @app.command()
