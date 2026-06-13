@@ -1,7 +1,13 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
+
+# Load .env from current working directory or project root
+env_path = Path(".env")
+if not env_path.exists():
+    # Try project root
+    env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(env_path)
 
 # --- Vault ---
 VAULT_PATH = Path(os.getenv("BRAIN_VAULT_PATH", "~/Obsidian")).expanduser()
