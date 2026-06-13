@@ -283,6 +283,33 @@ brain serve --host 0.0.0.0       # listen on all interfaces
 
 ---
 
+### Telegram Bot (`brain telegram`)
+
+Query your vault via Telegram on your phone:
+
+```bash
+# Get a bot token from @BotFather on Telegram, then:
+brain telegram --token YOUR_TOKEN
+
+# Or set in .env and run:
+brain telegram
+```
+
+**Commands:**
+- `/ask <question>` — Ask a question about your notes
+- `/search <query>` — Search for relevant notes
+- `/stats` — View vault statistics
+- `/help` — Show help message
+
+**Example:**
+```
+you › /ask What is my project status?
+bot › Based on your notes, here are the key updates...
+      Sources: Projects/Status.md
+```
+
+---
+
 ## Tips
 
 **Large folders hit token limits on free-tier Groq?**
@@ -328,7 +355,7 @@ Run `brain ingest` to index the new digest note into the vault.
 - [x] Hybrid search (semantic + BM25 keyword)
 - [x] MCP server mode — use your vault in Claude Desktop / Cursor
 - [x] `brain serve` — web UI mode
-- [ ] Telegram bot mode
+- [x] Telegram bot mode
 
 ---
 

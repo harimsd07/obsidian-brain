@@ -512,5 +512,41 @@ def serve(
         console.print("\n[dim]Server stopped.[/]")
 
 
+@app.command()
+def telegram(
+    token: str = typer.Option(None, "--token", "-t", help="Telegram bot token (or set TELEGRAM_BOT_TOKEN env var)"),
+):
+    """Start the Telegram bot.
+    
+    Query your vault via Telegram with /ask, /search, and /stats commands.
+    
+    \b
+    Setup:
+      1. Create a bot: talk to @BotFather on Telegram
+      2. Copy the token and run: brain telegram --token YOUR_TOKEN
+      3. Or set TELEGRAM_BOT_TOKEN in .env
+    
+    \b
+    Commands:
+      /ask <question>     - Ask a question about your notes
+      /search <query>     - Search for notes
+      /stats              - View vault statistics
+      /help               - Show help message
+    
+    Requires vault to be indexed first (brain ingest).
+    """
+    try:
+        from brain.telegram_bot import run
+        run(token=token)
+    except ImportError:
+        console.print("[red]Telegram bot library not installed.[/] Install with: pip install python-telegram-bot")
+    except ValueError as e:
+        console.print(f"[red]{str(e)}[/]")
+    except BrainError as e:
+        _handle_error(e)
+    except KeyboardInterrupt:
+        console.print("\n[dim]Telegram bot stopped.[/]")
+
+
 if __name__ == "__main__":
     app()

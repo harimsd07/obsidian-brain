@@ -32,6 +32,7 @@ LLM_PROVIDER = os.getenv("BRAIN_LLM_PROVIDER", "ollama")
 # --- API Keys (set in environment or .env) ---
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 
 # --- Provider-specific model names ---
 GROQ_MODEL = "llama-3.3-70b-versatile"
