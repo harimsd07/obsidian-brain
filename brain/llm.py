@@ -164,23 +164,3 @@ def check_ollama_models() -> dict:
         "available": sorted(available),
         "missing": sorted(missing),
     }
-
-
-def check_ollama_models() -> dict:
-    """Check which required models are available locally."""
-    try:
-        models_resp = ollama.list()
-        available = {m["model"] for m in models_resp["models"]}
-    except Exception as e:
-        return {"ok": False, "error": str(e), "available": [], "missing": []}
-
-    required = {EMBED_MODEL, LLM_MODEL}
-    available_base = {m.split(":")[0] for m in available}
-    required_base = {m.split(":")[0] for m in required}
-    missing = required_base - available_base
-
-    return {
-        "ok": len(missing) == 0,
-        "available": sorted(available),
-        "missing": sorted(missing),
-    }
