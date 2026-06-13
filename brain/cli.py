@@ -30,6 +30,9 @@ MANAGE:
   brain stats         Index stats + provider health check
   brain history       Browse and search past chat sessions
   brain list-notes    List all indexed notes
+
+INTEGRATIONS:
+  brain mcp           Start MCP server (Claude Desktop / Cursor IDE)
 """,
     add_completion=False,
     pretty_exceptions_enable=False,   # we handle our own errors
@@ -452,12 +455,35 @@ def list_notes(
             t = Table(box=box.SIMPLE, show_header=False, padding=(0, 2))
             t.add_column("Note", style="white")
             t.add_column("Path", style="dim")
-            for fp in sorted(fps):
-                t.add_row(Path(fp).stem, fp)
-            console.print(t)
+             for fp in sorted(fps):
+                 t.add_row(Path(fp).stem, fp)
+             console.print(t)
 
+     except BrainError as e:
+         _handle_error(e)
+
+
+@app.command()
+def mcp():
+    """Start MCP server for Claude Desktop or Cursor IDE.
+    
+    Exposes your vault as tools in Claude Desktop and Cursor:
+    - search_vault: Search your notes semantically
+    - ask_vault: Ask questions about your notes
+    - get_vault_stats: View vault statistics
+    
+    Requires vault to be indexed first (brain ingest).
+    """
+    try:
+        import asyncio
+        from brain.mcp_server import run
+        asyncio.run(run())
+    except ImportError:
+        console.print("[red]MCP not installed.[/] Install with: pip install mcp")
     except BrainError as e:
         _handle_error(e)
+    except KeyboardInterrupt:
+        console.print("\n[dim]MCP server stopped.[/]")
 
 
 if __name__ == "__main__":

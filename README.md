@@ -222,6 +222,44 @@ obsidian-brain/
 
 ---
 
+## Integrations
+
+### MCP Server (Claude Desktop / Cursor IDE)
+
+Use your Obsidian vault directly in **Claude Desktop** or **Cursor IDE** via the Model Context Protocol (MCP):
+
+```bash
+brain mcp
+```
+
+This starts an MCP server exposing three tools:
+- **`search_vault`** — Semantic search across your notes
+- **`ask_vault`** — Ask questions with LLM-generated answers
+- **`get_vault_stats`** — View vault index statistics
+
+**To use with Claude Desktop:**
+
+1. Start the MCP server: `brain mcp`
+2. Add to Claude Desktop config (`~/.config/Claude/claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "obsidian-brain": {
+      "command": "brain",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+3. Restart Claude Desktop — your vault tools will appear in the tools menu
+
+**To use with Cursor IDE:**
+
+1. Start the MCP server: `brain mcp`
+2. Cursor automatically discovers MCP servers running on localhost
+
+---
+
 ## Tips
 
 **Large folders hit token limits on free-tier Groq?**
@@ -265,7 +303,7 @@ Run `brain ingest` to index the new digest note into the vault.
 - [x] Persistent chat history
 - [x] `brain ask` — one-shot Q&A without REPL
 - [x] Hybrid search (semantic + BM25 keyword)
-- [ ] MCP server mode — use your vault in Claude Desktop / Cursor
+- [x] MCP server mode — use your vault in Claude Desktop / Cursor
 - [ ] `brain serve` — web UI mode
 - [ ] Telegram bot mode
 
