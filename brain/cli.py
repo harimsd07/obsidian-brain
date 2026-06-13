@@ -486,5 +486,31 @@ def mcp():
         console.print("\n[dim]MCP server stopped.[/]")
 
 
+@app.command()
+def serve(
+    host: str = typer.Option("127.0.0.1", "--host", "-h", help="Server host"),
+    port: int = typer.Option(8000, "--port", "-p", help="Server port"),
+):
+    """Start the web UI server.
+    
+    Opens a browser-based interface to search and query your vault.
+    
+    \b
+    Examples:
+      brain serve                     # start on localhost:8000
+      brain serve --port 3000         # custom port
+      brain serve --host 0.0.0.0      # listen on all interfaces
+    """
+    try:
+        from brain.web_ui import run_server
+        run_server(host=host, port=port)
+    except ImportError:
+        console.print("[red]FastAPI/Uvicorn not installed.[/] Install with: pip install fastapi uvicorn")
+    except BrainError as e:
+        _handle_error(e)
+    except KeyboardInterrupt:
+        console.print("\n[dim]Server stopped.[/]")
+
+
 if __name__ == "__main__":
     app()

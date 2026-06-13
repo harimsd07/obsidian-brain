@@ -260,6 +260,29 @@ This starts an MCP server exposing three tools:
 
 ---
 
+### Web UI (`brain serve`)
+
+Start a browser-based interface to search and query your vault:
+
+```bash
+brain serve
+```
+
+Then open http://localhost:8000 in your browser.
+
+**Features:**
+- 🔍 **Search tab** — semantic or hybrid search with result snippets
+- 💬 **Ask tab** — ask questions with LLM reasoning and source citations
+- 📊 **Stats tab** — view vault statistics
+
+**Options:**
+```bash
+brain serve --port 3000          # custom port
+brain serve --host 0.0.0.0       # listen on all interfaces
+```
+
+---
+
 ## Tips
 
 **Large folders hit token limits on free-tier Groq?**
@@ -304,7 +327,7 @@ Run `brain ingest` to index the new digest note into the vault.
 - [x] `brain ask` — one-shot Q&A without REPL
 - [x] Hybrid search (semantic + BM25 keyword)
 - [x] MCP server mode — use your vault in Claude Desktop / Cursor
-- [ ] `brain serve` — web UI mode
+- [x] `brain serve` — web UI mode
 - [ ] Telegram bot mode
 
 ---
