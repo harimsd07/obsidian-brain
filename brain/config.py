@@ -20,6 +20,7 @@ CHUNK_OVERLAP = 64      # overlap between chunks
 
 # --- Retrieval ---
 TOP_K = 5               # number of chunks to retrieve per query
+HYBRID_SEARCH = os.getenv("BRAIN_HYBRID_SEARCH", "true").lower() == "true"
 
 # --- Folders to skip inside vault ---
 IGNORE_DIRS = {".obsidian", ".trash", "templates", "attachments", "assets"}

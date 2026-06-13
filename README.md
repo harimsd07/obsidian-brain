@@ -56,6 +56,7 @@ Sources: AI-Agents.md  AI Agent System — Tech Stack Decisions.md
 - 🏷️ **Frontmatter aware** — understands tags, aliases, wikilinks
 - 📍 **Source citations** — every answer shows which notes it came from
 - 🧪 **80+ tests** — pytest suite with GitHub Actions CI
+- 🔍 **Hybrid search** — combine semantic + BM25 keyword search for better recall
 
 ---
 
@@ -261,9 +262,9 @@ Run `brain ingest` to index the new digest note into the vault.
 - [x] `brain list-notes` — browse vault structure
 - [x] Human-readable error handling
 - [x] 80+ tests + GitHub Actions CI
-- [ ] Persistent chat history
-- [ ] `brain ask` — one-shot Q&A without REPL
-- [ ] Hybrid search (semantic + BM25 keyword)
+- [x] Persistent chat history
+- [x] `brain ask` — one-shot Q&A without REPL
+- [x] Hybrid search (semantic + BM25 keyword)
 - [ ] MCP server mode — use your vault in Claude Desktop / Cursor
 - [ ] `brain serve` — web UI mode
 - [ ] Telegram bot mode

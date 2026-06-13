@@ -8,7 +8,29 @@ from brain.exceptions import BrainError
 
 app = typer.Typer(
     name="brain",
-    help="Obsidian Second Brain — chat with your notes locally.",
+    help="""
+\b
+Obsidian Brain — Chat with your notes locally using RAG + LLMs.
+
+QUICK START:
+  brain init          First-time setup wizard
+  brain ingest        Index your vault
+  brain chat          Start chatting with your notes
+  brain ask "..."     One-shot question — no REPL needed
+
+EXPLORE:
+  brain ask           One-shot Q&A (pipe-friendly with --raw)
+  brain summarize     Summarize a note or folder
+  brain related       Find semantically related notes
+  brain tag           Auto-tag untagged notes
+  brain digest        Daily digest of recent notes
+
+MANAGE:
+  brain watch         File watcher — auto re-index on save
+  brain stats         Index stats + provider health check
+  brain history       Browse and search past chat sessions
+  brain list-notes    List all indexed notes
+""",
     add_completion=False,
     pretty_exceptions_enable=False,   # we handle our own errors
 )
@@ -145,8 +167,16 @@ def stats():
 
 
 @app.command()
-def chat():
-    """Start an interactive Q&A session with your notes."""
+def chat(
+    resume: bool = typer.Option(False, "--resume", "-r", help="Resume the last session"),
+):
+    """Start an interactive Q&A session with your notes.
+
+    \b
+    Examples:
+      brain chat            # start a new session
+      brain chat --resume   # continue your last session
+    """
     try:
         from brain.commands.chat import run_chat
         from brain import db
@@ -155,7 +185,102 @@ def chat():
         stats = db.collection_stats()
         if stats["total_chunks"] == 0:
             raise VaultNotIndexed()
-        run_chat()
+        run_chat(resume=resume)
+    except BrainError as e:
+        _handle_error(e)
+
+
+@app.command()
+def ask(
+    question: str = typer.Argument(..., help="Question to ask your notes"),
+    top: int = typer.Option(10, "--top", "-k", help="Number of chunks to retrieve (default: 10)"),
+    thinking: bool = typer.Option(True, "--thinking/--no-thinking", help="Show reasoning phase"),
+    raw: bool = typer.Option(False, "--raw", "-r", help="Plain text output — good for piping to files"),
+    hybrid: bool = typer.Option(True, "--hybrid/--semantic-only", help="Use hybrid search (semantic + BM25 keyword)"),
+):
+    """Ask a single question and get an answer without entering chat mode.
+
+    \b
+    Examples:
+      brain ask "what is in my outreach folder?"
+      brain ask "summarize my agent project" --no-thinking
+      brain ask "what is clinic outreach strategy?" --top 15
+      brain ask "what are my notes on RAG?" --raw >> notes.md
+      brain ask "query" --semantic-only    # Use only semantic search
+    """
+    try:
+        from brain.commands.ask import run_ask
+        run_ask(question=question, top_k=top, thinking=thinking, raw=raw, hybrid=hybrid)
+    except BrainError as e:
+        _handle_error(e)
+    except KeyboardInterrupt:
+        console.print("\n[dim]Cancelled.[/]")
+
+
+@app.command()
+def history(
+    search: str = typer.Option(None, "--search", "-s", help="Search sessions by keyword"),
+    limit: int = typer.Option(10, "--limit", "-l", help="Number of sessions to show"),
+    clear: bool = typer.Option(False, "--clear", help="Delete all chat history"),
+):
+    """Browse and search past chat sessions.
+
+    \b
+    Examples:
+      brain history                    # list recent sessions
+      brain history --search "RAG"     # find sessions mentioning RAG
+      brain history --clear            # delete all history
+    """
+    try:
+        from brain.history import list_sessions, search_sessions, clear_all_history
+        from rich.table import Table
+        from rich import box
+        from rich.prompt import Confirm
+
+        if clear:
+            if Confirm.ask("[yellow]Delete all chat history?[/]"):
+                count = clear_all_history()
+                console.print(f"[green]✓[/] Deleted {count} session(s).")
+            return
+
+        if search:
+            results = search_sessions(search, limit=limit)
+            if not results:
+                console.print(f"[yellow]No sessions found containing:[/] [cyan]{search}[/]")
+                return
+            console.print(f"\n[bold]Sessions matching[/] [cyan]{search}[/]\n")
+            for r in results:
+                role_color = "cyan" if r["role"] == "user" else "dim"
+                console.print(
+                    f"  [dim]{r['date']}[/]  [{role_color}]{r['role']}[/]  {r['excerpt']}"
+                )
+            return
+
+        sessions = list_sessions(limit=limit)
+        if not sessions:
+            console.print("\n[dim]No chat history found.[/]")
+            console.print("[dim]Start a session with: brain chat[/]\n")
+            return
+
+        console.print(f"\n[bold]Recent sessions[/] [dim]({len(sessions)} shown)[/]\n")
+        table = Table(box=box.SIMPLE, show_header=True, header_style="bold dim", padding=(0, 1))
+        table.add_column("#", style="dim", width=3)
+        table.add_column("Date", style="cyan")
+        table.add_column("Questions", width=10, justify="right")
+        table.add_column("First question", style="dim")
+
+        for i, s in enumerate(sessions, 1):
+            table.add_row(
+                str(i),
+                s["date"],
+                str(s["message_count"]),
+                s["first_question"],
+            )
+        console.print(table)
+        console.print(
+            "\n[dim]Resume last session:[/] [cyan]brain chat --resume[/]\n"
+        )
+
     except BrainError as e:
         _handle_error(e)
 
@@ -259,6 +384,78 @@ def digest(
         if db.collection_stats()["total_chunks"] == 0:
             raise VaultNotIndexed()
         run_digest(since=since, save=save, vault_path=VAULT_PATH)
+    except BrainError as e:
+        _handle_error(e)
+
+
+@app.command(name="list-notes")
+def list_notes(
+    folder: str = typer.Option(None, "--folder", "-f", help="Filter by folder name"),
+    search: str = typer.Option(None, "--search", "-s", help="Filter by note name keyword"),
+):
+    """List all indexed notes grouped by folder.
+
+    \b
+    Examples:
+      brain list-notes                          # show everything
+      brain list-notes --folder "Linux"         # filter by folder
+      brain list-notes --search "agent"         # filter by note name
+      brain list-notes --folder "ObsidianForArch" --search "rudratic"
+    """
+    try:
+        from brain import db
+        from rich.table import Table
+        from rich import box
+
+        col = db.get_collection()
+        results = col.get(include=["metadatas"])
+        metas = results.get("metadatas", [])
+
+        # Deduplicate by file_path
+        seen = {}
+        for meta in metas:
+            fp = meta.get("file_path", "")
+            if fp and fp not in seen:
+                seen[fp] = meta
+
+        notes = sorted(seen.keys())
+
+        if not notes:
+            console.print(
+                "\n[yellow]![/] No notes indexed yet. Run: [cyan]brain ingest[/]\n"
+            )
+            return
+
+        # Apply filters
+        if folder:
+            notes = [n for n in notes if folder.lower() in n.lower()]
+        if search:
+            notes = [n for n in notes if search.lower() in Path(n).stem.lower()]
+
+        if not notes:
+            console.print("[yellow]No notes found matching your filters.[/]")
+            return
+
+        # Group by top-level folder
+        grouped: dict[str, list[str]] = {}
+        for fp in notes:
+            parts = Path(fp).parts
+            top = parts[0] if len(parts) > 1 else "/"
+            grouped.setdefault(top, []).append(fp)
+
+        console.print(f"\n[bold]Indexed notes[/] [dim]({len(notes)} total)[/]\n")
+
+        for folder_name, fps in sorted(grouped.items()):
+            console.print(
+                f"[bold cyan]{folder_name}/[/]  [dim]{len(fps)} note{'s' if len(fps) != 1 else ''}[/]"
+            )
+            t = Table(box=box.SIMPLE, show_header=False, padding=(0, 2))
+            t.add_column("Note", style="white")
+            t.add_column("Path", style="dim")
+            for fp in sorted(fps):
+                t.add_row(Path(fp).stem, fp)
+            console.print(t)
+
     except BrainError as e:
         _handle_error(e)
 

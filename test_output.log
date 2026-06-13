@@ -1,0 +1,210 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.5, pytest-9.0.3, pluggy-1.6.0 -- /home/irah/Desktop/Python/obsidian-brain/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/irah/Desktop/Python/obsidian-brain
+configfile: pyproject.toml
+plugins: anyio-4.13.0, mock-3.15.1, cov-7.1.0
+collecting ... collected 147 items
+
+tests/test_ask.py::TestAskVaultNotIndexed::test_raises_vault_not_indexed PASSED [  0%]
+tests/test_ask.py::TestAskRetrieval::test_no_chunks_found_raw PASSED     [  1%]
+tests/test_ask.py::TestAskRetrieval::test_retrieves_correct_top_k ERROR  [  2%]
+tests/test_ask.py::TestAskRetrieval::test_default_top_k_is_10 ERROR      [  2%]
+tests/test_ask.py::TestAskRawOutput::test_raw_prints_answer ERROR        [  3%]
+tests/test_ask.py::TestAskRawOutput::test_raw_strips_think_tags ERROR    [  4%]
+tests/test_ask.py::TestAskRawOutput::test_raw_no_rich_markup ERROR       [  4%]
+tests/test_ask.py::TestAskMessages::test_question_included_in_messages ERROR [  5%]
+tests/test_ask.py::TestAskMessages::test_context_included_in_messages ERROR [  6%]
+tests/test_ask.py::TestAskMessages::test_thinking_uses_think_system_prompt ERROR [  6%]
+tests/test_ask.py::TestAskMessages::test_no_thinking_uses_plain_system_prompt ERROR [  7%]
+tests/test_chunker.py::TestTokenCount::test_empty_string PASSED          [  8%]
+tests/test_chunker.py::TestTokenCount::test_single_word PASSED           [  8%]
+tests/test_chunker.py::TestTokenCount::test_longer_text PASSED           [  9%]
+tests/test_chunker.py::TestChunkText::test_short_text_single_chunk PASSED [ 10%]
+tests/test_chunker.py::TestChunkText::test_long_text_multiple_chunks PASSED [ 10%]
+tests/test_chunker.py::TestChunkText::test_overlap_content PASSED        [ 11%]
+tests/test_chunker.py::TestChunkText::test_empty_text PASSED             [ 12%]
+tests/test_chunker.py::TestChunkText::test_exact_chunk_size PASSED       [ 12%]
+tests/test_chunker.py::TestSplitSectionsIntoChunks::test_short_sections_kept_as_is PASSED [ 13%]
+tests/test_chunker.py::TestSplitSectionsIntoChunks::test_empty_sections_skipped PASSED [ 14%]
+tests/test_chunker.py::TestSplitSectionsIntoChunks::test_long_section_split PASSED [ 14%]
+tests/test_chunker.py::TestSplitSectionsIntoChunks::test_mixed_short_and_long PASSED [ 15%]
+tests/test_digest.py::TestParseSince::test_hours PASSED                  [ 16%]
+tests/test_digest.py::TestParseSince::test_days PASSED                   [ 17%]
+tests/test_digest.py::TestParseSince::test_weeks PASSED                  [ 17%]
+tests/test_digest.py::TestParseSince::test_singular_label PASSED         [ 18%]
+tests/test_digest.py::TestParseSince::test_plural_label PASSED           [ 19%]
+tests/test_digest.py::TestParseSince::test_invalid_raises PASSED         [ 19%]
+tests/test_digest.py::TestParseSince::test_invalid_unit_raises PASSED    [ 20%]
+tests/test_digest.py::TestBuildNotesBlock::test_basic_structure PASSED   [ 21%]
+tests/test_digest.py::TestBuildNotesBlock::test_caps_at_max_notes PASSED [ 21%]
+tests/test_digest.py::TestBuildNotesBlock::test_sorts_by_most_recent PASSED [ 22%]
+tests/test_digest.py::TestBuildNotesBlock::test_caps_total_chars PASSED  [ 23%]
+tests/test_digest.py::TestBuildNotesBlock::test_empty_grouped PASSED     [ 23%]
+tests/test_digest.py::TestRunDigest::test_generates_digest PASSED        [ 24%]
+tests/test_digest.py::TestRunDigest::test_save_creates_file PASSED       [ 25%]
+tests/test_digest.py::TestRunDigest::test_saved_file_has_frontmatter PASSED [ 25%]
+tests/test_digest.py::TestRunDigest::test_no_recent_notes_shows_warning PASSED [ 26%]
+tests/test_digest.py::TestRunDigest::test_weekly_digest PASSED           [ 27%]
+tests/test_history.py::TestNewSessionId::test_format PASSED              [ 27%]
+tests/test_history.py::TestNewSessionId::test_unique PASSED              [ 28%]
+tests/test_history.py::TestSaveAndLoad::test_save_and_load_single_message PASSED [ 29%]
+tests/test_history.py::TestSaveAndLoad::test_save_multiple_messages PASSED [ 29%]
+tests/test_history.py::TestSaveAndLoad::test_load_nonexistent_returns_empty PASSED [ 30%]
+tests/test_history.py::TestSaveAndLoad::test_messages_have_timestamp PASSED [ 31%]
+tests/test_history.py::TestSaveAndLoad::test_load_preserves_order PASSED [ 31%]
+tests/test_history.py::TestListSessions::test_returns_sessions PASSED    [ 32%]
+tests/test_history.py::TestListSessions::test_sorted_most_recent_first PASSED [ 33%]
+tests/test_history.py::TestListSessions::test_empty_history PASSED       [ 34%]
+tests/test_history.py::TestListSessions::test_first_question_extracted PASSED [ 34%]
+tests/test_history.py::TestListSessions::test_respects_limit PASSED      [ 35%]
+tests/test_history.py::TestGetLatestSessionId::test_returns_latest PASSED [ 36%]
+tests/test_history.py::TestGetLatestSessionId::test_returns_none_when_empty PASSED [ 36%]
+tests/test_history.py::TestSearchSessions::test_finds_keyword_in_user_message PASSED [ 37%]
+tests/test_history.py::TestSearchSessions::test_finds_keyword_in_assistant_message PASSED [ 38%]
+tests/test_history.py::TestSearchSessions::test_case_insensitive PASSED  [ 38%]
+tests/test_history.py::TestSearchSessions::test_no_match_returns_empty PASSED [ 39%]
+tests/test_history.py::TestSearchSessions::test_one_result_per_session PASSED [ 40%]
+tests/test_history.py::TestDeleteAndClear::test_delete_session PASSED    [ 40%]
+tests/test_history.py::TestDeleteAndClear::test_delete_nonexistent PASSED [ 41%]
+tests/test_history.py::TestDeleteAndClear::test_clear_all PASSED         [ 42%]
+tests/test_history.py::TestDeleteAndClear::test_clear_empty PASSED       [ 42%]
+tests/test_ingest.py::TestCollectNotes::test_finds_md_files PASSED       [ 43%]
+tests/test_ingest.py::TestCollectNotes::test_skips_obsidian_dir PASSED   [ 44%]
+tests/test_ingest.py::TestCollectNotes::test_finds_nested_notes PASSED   [ 44%]
+tests/test_ingest.py::TestCollectNotes::test_returns_sorted PASSED       [ 45%]
+tests/test_ingest.py::TestCollectNotes::test_empty_vault PASSED          [ 46%]
+tests/test_ingest.py::TestCollectNotes::test_ignores_non_md PASSED       [ 46%]
+tests/test_ingest.py::TestIngestNote::test_ingest_returns_chunk_count PASSED [ 47%]
+tests/test_ingest.py::TestIngestNote::test_skips_unchanged_file PASSED   [ 48%]
+tests/test_ingest.py::TestIngestNote::test_empty_note_returns_zero PASSED [ 48%]
+tests/test_ingest.py::TestIngestNote::test_force_reindexes PASSED        [ 49%]
+tests/test_related.py::TestScoreColor::test_strong_match PASSED          [ 50%]
+tests/test_related.py::TestScoreColor::test_moderate_match PASSED        [ 51%]
+tests/test_related.py::TestScoreColor::test_weak_match PASSED            [ 51%]
+tests/test_related.py::TestScoreColor::test_boundary_low PASSED          [ 52%]
+tests/test_related.py::TestScoreColor::test_boundary_high PASSED         [ 53%]
+tests/test_related.py::TestResolveNotePath::test_exact_match PASSED      [ 53%]
+tests/test_related.py::TestResolveNotePath::test_adds_md_extension PASSED [ 54%]
+tests/test_related.py::TestResolveNotePath::test_fuzzy_by_stem PASSED    [ 55%]
+tests/test_related.py::TestFindRelated::test_shows_related_notes PASSED  [ 55%]
+tests/test_related.py::TestFindRelated::test_no_chunks_shows_warning PASSED [ 56%]
+tests/test_related.py::TestFindRelated::test_excludes_self PASSED        [ 57%]
+tests/test_related.py::TestFindRelated::test_deduplicates_per_note PASSED [ 57%]
+tests/test_retriever.py::TestBuildContext::test_single_chunk PASSED      [ 58%]
+tests/test_retriever.py::TestBuildContext::test_multiple_chunks_separated PASSED [ 59%]
+tests/test_retriever.py::TestBuildContext::test_heading_included PASSED  [ 59%]
+tests/test_retriever.py::TestBuildContext::test_intro_heading_excluded PASSED [ 60%]
+tests/test_retriever.py::TestBuildContext::test_empty_chunks PASSED      [ 61%]
+tests/test_retriever.py::TestFormatSources::test_deduplication PASSED    [ 61%]
+tests/test_retriever.py::TestFormatSources::test_order_preserved PASSED  [ 62%]
+tests/test_retriever.py::TestFormatSources::test_empty_chunks PASSED     [ 63%]
+tests/test_retriever.py::TestRetrieve::test_returns_chunks PASSED        [ 63%]
+tests/test_retriever.py::TestRetrieve::test_returns_empty_on_db_error PASSED [ 64%]
+tests/test_retriever.py::TestRetrieve::test_score_is_distance PASSED     [ 65%]
+tests/test_summarize.py::TestParseSince::test_hours PASSED               [ 65%]
+tests/test_summarize.py::TestParseSince::test_days PASSED                [ 66%]
+tests/test_summarize.py::TestParseSince::test_weeks PASSED               [ 67%]
+tests/test_summarize.py::TestParseSince::test_invalid_raises PASSED      [ 68%]
+tests/test_summarize.py::TestParseSince::test_invalid_unit PASSED        [ 68%]
+tests/test_summarize.py::TestResolveNotePath::test_exact_match PASSED    [ 69%]
+tests/test_summarize.py::TestResolveNotePath::test_adds_md_extension PASSED [ 70%]
+tests/test_summarize.py::TestResolveNotePath::test_fuzzy_match_by_stem PASSED [ 70%]
+tests/test_summarize.py::TestSummarizeNote::test_calls_stream_with_content PASSED [ 71%]
+tests/test_summarize.py::TestSummarizeNote::test_no_chunks_prints_warning PASSED [ 72%]
+tests/test_summarize.py::TestSummarizeFolder::test_calls_stream_with_notes PASSED [ 72%]
+tests/test_summarize.py::TestSummarizeFolder::test_empty_folder_prints_warning PASSED [ 73%]
+tests/test_summarize.py::TestSummarizeFolder::test_since_passed_to_getter PASSED [ 74%]
+tests/test_summarize.py::TestSummarizeFolder::test_caps_chunks_per_note PASSED [ 74%]
+tests/test_tag.py::TestParseTags::test_standard_yaml_list PASSED         [ 75%]
+tests/test_tag.py::TestParseTags::test_strips_quotes PASSED              [ 76%]
+tests/test_tag.py::TestParseTags::test_lowercases_tags PASSED            [ 76%]
+tests/test_tag.py::TestParseTags::test_replaces_spaces_with_hyphens PASSED [ 77%]
+tests/test_tag.py::TestParseTags::test_caps_at_five PASSED               [ 78%]
+tests/test_tag.py::TestParseTags::test_removes_special_chars PASSED      [ 78%]
+tests/test_tag.py::TestParseTags::test_empty_output PASSED               [ 79%]
+tests/test_tag.py::TestParseTags::test_asterisk_marker PASSED            [ 80%]
+tests/test_tag.py::TestParseTags::test_skips_empty_lines PASSED          [ 80%]
+tests/test_tag.py::TestGetUntaggedNotes::test_returns_untagged PASSED    [ 81%]
+tests/test_tag.py::TestGetUntaggedNotes::test_skips_nonexistent_files PASSED [ 82%]
+tests/test_tag.py::TestGetUntaggedNotes::test_all_tagged_returns_empty PASSED [ 82%]
+tests/test_tag.py::TestRunTag::test_dry_run_does_not_write PASSED        [ 83%]
+tests/test_tag.py::TestRunTag::test_apply_writes_tags PASSED             [ 84%]
+tests/test_tag.py::TestRunTag::test_no_untagged_notes PASSED             [ 85%]
+tests/test_tag.py::TestRunTag::test_single_note_dry_run PASSED           [ 85%]
+tests/test_tag.py::TestRunTag::test_single_note_apply PASSED             [ 86%]
+tests/test_utils.py::TestResolveWikilinks::test_simple_wikilink PASSED   [ 87%]
+tests/test_utils.py::TestResolveWikilinks::test_aliased_wikilink PASSED  [ 87%]
+tests/test_utils.py::TestResolveWikilinks::test_multiple_wikilinks PASSED [ 88%]
+tests/test_utils.py::TestResolveWikilinks::test_no_wikilinks PASSED      [ 89%]
+tests/test_utils.py::TestResolveWikilinks::test_empty_string PASSED      [ 89%]
+tests/test_utils.py::TestNoteTitleFromPath::test_simple_filename PASSED  [ 90%]
+tests/test_utils.py::TestNoteTitleFromPath::test_filename_with_spaces PASSED [ 91%]
+tests/test_utils.py::TestNoteTitleFromPath::test_nested_path PASSED      [ 91%]
+tests/test_utils.py::TestRelativePath::test_direct_child PASSED          [ 92%]
+tests/test_utils.py::TestRelativePath::test_nested PASSED                [ 93%]
+tests/test_utils.py::TestParseNote::test_frontmatter_tags_list PASSED    [ 93%]
+tests/test_utils.py::TestParseNote::test_frontmatter_tags_string PASSED  [ 94%]
+tests/test_utils.py::TestParseNote::test_no_frontmatter PASSED           [ 95%]
+tests/test_utils.py::TestParseNote::test_sections_by_heading PASSED      [ 95%]
+tests/test_utils.py::TestParseNote::test_note_without_headings PASSED    [ 96%]
+tests/test_utils.py::TestParseNote::test_aliases_list PASSED             [ 97%]
+tests/test_utils.py::TestParseNote::test_tag_hash_stripped PASSED        [ 97%]
+tests/test_utils.py::TestFileHash::test_same_content_same_hash PASSED    [ 98%]
+tests/test_utils.py::TestFileHash::test_different_content_different_hash PASSED [ 99%]
+tests/test_utils.py::TestFileHash::test_hash_changes_on_edit PASSED      [100%]
+
+==================================== ERRORS ====================================
+_______ ERROR at setup of TestAskRetrieval.test_retrieves_correct_top_k ________
+tests/test_ask.py:18: in mock_chunks
+    RetrievedChunk(
+E   TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+_________ ERROR at setup of TestAskRetrieval.test_default_top_k_is_10 __________
+tests/test_ask.py:18: in mock_chunks
+    RetrievedChunk(
+E   TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+__________ ERROR at setup of TestAskRawOutput.test_raw_prints_answer ___________
+tests/test_ask.py:18: in mock_chunks
+    RetrievedChunk(
+E   TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+________ ERROR at setup of TestAskRawOutput.test_raw_strips_think_tags _________
+tests/test_ask.py:18: in mock_chunks
+    RetrievedChunk(
+E   TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+__________ ERROR at setup of TestAskRawOutput.test_raw_no_rich_markup __________
+tests/test_ask.py:18: in mock_chunks
+    RetrievedChunk(
+E   TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+_____ ERROR at setup of TestAskMessages.test_question_included_in_messages _____
+tests/test_ask.py:18: in mock_chunks
+    RetrievedChunk(
+E   TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+_____ ERROR at setup of TestAskMessages.test_context_included_in_messages ______
+tests/test_ask.py:18: in mock_chunks
+    RetrievedChunk(
+E   TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+___ ERROR at setup of TestAskMessages.test_thinking_uses_think_system_prompt ___
+tests/test_ask.py:18: in mock_chunks
+    RetrievedChunk(
+E   TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+_ ERROR at setup of TestAskMessages.test_no_thinking_uses_plain_system_prompt __
+tests/test_ask.py:18: in mock_chunks
+    RetrievedChunk(
+E   TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+=============================== warnings summary ===============================
+.venv/lib/python3.14/site-packages/chromadb/telemetry/opentelemetry/__init__.py:128
+  /home/irah/Desktop/Python/obsidian-brain/.venv/lib/python3.14/site-packages/chromadb/telemetry/opentelemetry/__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/test_ask.py::TestAskRetrieval::test_retrieves_correct_top_k - TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+ERROR tests/test_ask.py::TestAskRetrieval::test_default_top_k_is_10 - TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+ERROR tests/test_ask.py::TestAskRawOutput::test_raw_prints_answer - TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+ERROR tests/test_ask.py::TestAskRawOutput::test_raw_strips_think_tags - TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+ERROR tests/test_ask.py::TestAskRawOutput::test_raw_no_rich_markup - TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+ERROR tests/test_ask.py::TestAskMessages::test_question_included_in_messages - TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+ERROR tests/test_ask.py::TestAskMessages::test_context_included_in_messages - TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+ERROR tests/test_ask.py::TestAskMessages::test_thinking_uses_think_system_prompt - TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+ERROR tests/test_ask.py::TestAskMessages::test_no_thinking_uses_plain_system_prompt - TypeError: RetrievedChunk.__init__() got an unexpected keyword argument 'chunk_id'
+=================== 138 passed, 1 warning, 9 errors in 6.13s ===================

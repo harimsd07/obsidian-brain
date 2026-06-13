@@ -1,0 +1,64 @@
+{
+  "strategiesActive": {
+    "chatSessions": true,
+    "sqlite": false,
+    "memory": true
+  },
+  "pathsResolved": {
+    "workspaceStorage": "",
+    "userDataDir": "/home/irah/.config/Code/User"
+  },
+  "metrics": {
+    "filesParsed": 0,
+    "memoryFilesRead": 0,
+    "enrichmentAttempts": 0
+  },
+  "sources": {
+    "chatSessions": {
+      "active": true,
+      "filesParsed": 0,
+      "lastFileParsed": "",
+      "lastTurnsCount": 0,
+      "lastTurnPreview": "",
+      "lastEventTime": ""
+    },
+    "sqlite": {
+      "active": false,
+      "queriesRun": 0,
+      "available": false
+    },
+    "memoryTool": {
+      "active": true,
+      "filesRead": 0,
+      "lastFileRead": "",
+      "lastMemoryPreview": "",
+      "watchPath": "/home/irah/.config/Code/User/workspaceStorage"
+    },
+    "localHistory": {
+      "active": true,
+      "historyRoot": "/home/irah/.config/Code/User/History",
+      "snapshotsScanned": 0,
+      "filesWithChanges": 0,
+      "lastScanTime": "2026-06-13T14:29:16.967Z"
+    },
+    "chatEditing": {
+      "active": false,
+      "watchPath": "",
+      "editsDetected": 0,
+      "lastEditPreview": "",
+      "lastEventTime": ""
+    },
+    "emptyWindow": {
+      "active": false,
+      "watchPath": "/home/irah/.config/Code/User/globalStorage/emptyWindowChatSessions",
+      "sessionsFound": 0,
+      "turnsFound": 0,
+      "lastScanTime": "2026-06-13T14:15:16.977Z"
+    }
+  },
+  "recentCaptures": [],
+  "errors": [
+    "[2026-06-13T14:15:16.958Z] No workspaceStorage hash found for file:///home/irah/Desktop/Python/obsidian-brain"
+  ],
+  "lastScanTime": "2026-06-13T14:29:16.967Z"
+}
