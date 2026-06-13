@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- Vault ---
-VAULT_PATH = Path(os.getenv("BRAIN_VAULT_PATH", "/home/irah/Desktop/Obsidian")).expanduser()
+VAULT_PATH = Path(os.getenv("BRAIN_VAULT_PATH", "~/Obsidian")).expanduser()
 
 # --- ChromaDB ---
 CHROMA_PATH = Path(os.getenv("BRAIN_CHROMA_PATH", "./data/chroma"))
@@ -33,6 +33,6 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # --- Provider-specific model names ---
-GROQ_MODEL = "llama-3.3-70b-versatile"       # same model you use in Rudratic
+GROQ_MODEL = "llama-3.3-70b-versatile"
 GEMINI_MODEL = "gemini-2.0-flash"  
-GEMINI_EMBED_MODEL = "models/text-embedding-004"   # 768 dims, free tier           # free tier, fast
+GEMINI_EMBED_MODEL = "models/text-embedding-004"   # 768 dims, free tier
