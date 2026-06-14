@@ -22,6 +22,10 @@ from brain.middleware import (
     rate_limiter, query_cache, metrics, LIMITS
 )
 from brain.api_docs import get_openapi_schema
+from brain.auth import (
+    api_key_manager, AUTH_REQUIRED, get_api_key_from_request, 
+    GenerateKeyRequest, RevokeKeyRequest
+)
 
 # Configure logging
 logging.basicConfig(
@@ -718,13 +722,113 @@ async def api_stats(req: Request):
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# API Key Authentication Endpoints
+# ──────────────────────────────────────────────────────────────────────────────
+
+@app.post("/api/keys/generate")
+async def generate_api_key(request: Request):
+    """
+    Generate a new API key
+    
+    Request body:
+    {
+        "name": "My API Key",
+        "days_valid": 365
+    }
+    """
+    try:
+        body = await request.json()
+        name = body.get("name", "API Key")
+        days_valid = body.get("days_valid", 365)
+        
+        # Generate the key
+        api_key = api_key_manager.generate_key(name, days_valid)
+        
+        return {
+            "success": True,
+            "api_key": api_key,
+            "name": name,
+            "message": "⚠️  Save this key immediately. You won't be able to see it again!",
+            "usage": f"Add header: {{'X-API-Key': '{api_key}'}}"
+        }
+    except Exception as e:
+        logger.error(f"Key generation error: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/keys/list")
+async def list_api_keys(request: Request):
+    """List all active API keys (without revealing the full key)"""
+    try:
+        keys = api_key_manager.list_keys()
+        return {
+            "success": True,
+            "keys": keys,
+            "auth_required": AUTH_REQUIRED
+        }
+    except Exception as e:
+        logger.error(f"List keys error: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/keys/revoke")
+async def revoke_api_key(request: Request):
+    """
+    Revoke an API key
+    
+    Request body:
+    {
+        "key": "obsidian_..."
+    }
+    """
+    try:
+        body = await request.json()
+        key = body.get("key")
+        
+        if not key:
+            return {"success": False, "error": "API key required"}
+        
+        if api_key_manager.revoke_key(key):
+            return {
+                "success": True,
+                "message": "API key revoked successfully"
+            }
+        else:
+            return {"success": False, "error": "API key not found"}
+    except Exception as e:
+        logger.error(f"Revoke key error: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/auth/status")
+async def auth_status(request: Request):
+    """Check authentication status and requirements"""
+    try:
+        api_key = get_api_key_from_request(request)
+        is_authenticated = api_key is not None and api_key_manager.validate_key(api_key)
+        
+        return {
+            "success": True,
+            "auth_required": AUTH_REQUIRED,
+            "has_api_key": api_key is not None,
+            "is_authenticated": is_authenticated,
+            "api_key_header": "X-API-Key"
+        }
+    except Exception as e:
+        logger.error(f"Auth status error: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Server startup
 # ──────────────────────────────────────────────────────────────────────────────
 
 def run_server(host: str = "127.0.0.1", port: int = 8000):
     """Run the web UI server."""
     import uvicorn
+    auth_status = "✓ Required" if AUTH_REQUIRED else "✓ Optional"
     print(f"✓ Obsidian Brain web UI running at http://{host}:{port}")
+    print(f"  Authentication: {auth_status}")
     print(f"  Open your browser and navigate to http://{host}:{port}")
     uvicorn.run(app, host=host, port=port)
 
