@@ -3,21 +3,35 @@ Web UI server for Obsidian Brain.
 Provides a simple web interface to search and query your vault.
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 from typing import Optional
 import json
 from pathlib import Path
+import logging
 
 from brain import db
 from brain.config import VAULT_PATH, HYBRID_SEARCH
 from brain.exceptions import VaultNotIndexed
 from brain.retriever import retrieve, build_context, format_sources
 from brain.llm import generate
+from brain.middleware import (
+    rate_limiter, query_cache, metrics, LIMITS
+)
 
-app = FastAPI(title="Obsidian Brain", description="Chat with your Obsidian vault")
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title="Obsidian Brain",
+    description="Chat with your Obsidian vault with rate limiting and caching"
+)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Request/Response Models
@@ -479,9 +493,29 @@ async def root():
 
 
 @app.post("/api/search", response_model=SearchResponse)
-async def api_search(request: SearchRequest):
-    """Search the vault semantically."""
+async def api_search(req: Request, request: SearchRequest):
+    """Search the vault semantically with rate limiting and caching."""
     try:
+        # Check rate limit
+        client_ip = req.client.host if req.client else "unknown"
+        limit = LIMITS["search"]
+        if not rate_limiter.is_allowed(client_ip, "search", limit["max_requests"], limit["window_seconds"]):
+            metrics.record_search()  # Record even if rate limited
+            logger.warning(f"Rate limit exceeded for {client_ip}: search")
+            return JSONResponse(
+                status_code=429,
+                content={"success": False, "error": "Rate limit exceeded (100 searches/hour)"}
+            )
+        
+        metrics.record_search()
+        logger.info(f"Search query: '{request.query[:50]}' (top_k={request.top_k}, hybrid={request.hybrid})")
+        
+        # Check cache
+        cached = query_cache.get(request.query, request.top_k, request.hybrid, "search")
+        if cached:
+            logger.info("Returning cached search result")
+            return cached
+        
         stats = db.collection_stats()
         if stats["total_chunks"] == 0:
             raise VaultNotIndexed()
@@ -489,7 +523,9 @@ async def api_search(request: SearchRequest):
         chunks = retrieve(request.query, n=request.top_k, hybrid=request.hybrid)
         
         if not chunks:
-            return SearchResponse(success=True, chunks=[], sources=[])
+            result = SearchResponse(success=True, chunks=[], sources=[])
+            query_cache.set(request.query, request.top_k, request.hybrid, "search", result)
+            return result
         
         chunk_dicts = [
             {
@@ -506,16 +542,40 @@ async def api_search(request: SearchRequest):
             f"{c.note_title} ({c.file_path})" for c in chunks
         ))
         
-        return SearchResponse(success=True, chunks=chunk_dicts, sources=sources)
+        logger.info(f"Search returned {len(chunk_dicts)} results")
+        result = SearchResponse(success=True, chunks=chunk_dicts, sources=sources)
+        query_cache.set(request.query, request.top_k, request.hybrid, "search", result)
+        return result
     
     except Exception as e:
+        logger.error(f"Search error: {str(e)}")
         return SearchResponse(success=False, chunks=[], sources=[], error=str(e))
 
 
 @app.post("/api/ask", response_model=AskResponse)
-async def api_ask(request: AskRequest):
-    """Ask a question about the vault."""
+async def api_ask(req: Request, request: AskRequest):
+    """Ask a question about the vault with rate limiting and caching."""
     try:
+        # Check rate limit
+        client_ip = req.client.host if req.client else "unknown"
+        limit = LIMITS["ask"]
+        if not rate_limiter.is_allowed(client_ip, "ask", limit["max_requests"], limit["window_seconds"]):
+            metrics.record_ask()  # Record even if rate limited
+            logger.warning(f"Rate limit exceeded for {client_ip}: ask")
+            return JSONResponse(
+                status_code=429,
+                content={"success": False, "error": "Rate limit exceeded (50 questions/hour)"}
+            )
+        
+        metrics.record_ask()
+        logger.info(f"Ask question: '{request.question[:50]}' (top_k={request.top_k}, thinking={request.thinking})")
+        
+        # Check cache
+        cached = query_cache.get(request.question, request.top_k, request.thinking, "ask")
+        if cached:
+            logger.info("Returning cached ask result")
+            return cached
+        
         stats = db.collection_stats()
         if stats["total_chunks"] == 0:
             raise VaultNotIndexed()
@@ -558,26 +618,48 @@ If notes don't contain enough information, say so."""
                 if "</think>" in part:
                     answer += part.split("</think>", 1)[1]
         
-        return AskResponse(success=True, answer=answer.strip(), sources=sources)
+        logger.info(f"Ask generated answer ({len(answer)} chars) with {len(sources)} sources")
+        result = AskResponse(success=True, answer=answer.strip(), sources=sources)
+        query_cache.set(request.question, request.top_k, request.thinking, "ask", result)
+        return result
     
     except Exception as e:
+        logger.error(f"Ask error: {str(e)}")
         return AskResponse(success=False, answer="", sources=[], error=str(e))
 
 
 @app.get("/api/stats")
-async def api_stats():
-    """Get vault statistics."""
+async def api_stats(req: Request):
+    """Get vault statistics and server metrics with rate limiting."""
     try:
+        # Check rate limit
+        client_ip = req.client.host if req.client else "unknown"
+        limit = LIMITS["stats"]
+        if not rate_limiter.is_allowed(client_ip, "stats", limit["max_requests"], limit["window_seconds"]):
+            metrics.record_stats()  # Record even if rate limited
+            logger.warning(f"Rate limit exceeded for {client_ip}: stats")
+            return JSONResponse(
+                status_code=429,
+                content={"success": False, "error": "Rate limit exceeded (1000 requests/hour)"}
+            )
+        
+        metrics.record_stats()
+        logger.info("Stats requested")
+        
         stats = db.collection_stats()
+        server_metrics = metrics.get_stats()
+        
         return {
             "success": True,
             "stats": {
                 "total_chunks": stats["total_chunks"],
                 "vault_path": str(VAULT_PATH),
                 "hybrid_search": HYBRID_SEARCH
-            }
+            },
+            "metrics": server_metrics
         }
     except Exception as e:
+        logger.error(f"Stats error: {str(e)}")
         return {"success": False, "error": str(e)}
 
 
