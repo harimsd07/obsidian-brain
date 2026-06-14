@@ -1,407 +1,334 @@
 # 🧠 Obsidian Brain
 
-> Chat with your Obsidian vault locally. Ask questions, get answers with source citations — powered by local LLMs or free-tier cloud providers.
+Transform your Obsidian vault into an intelligent knowledge base with semantic search, AI-powered answers, and multi-provider LLM support.
 
-No cloud lock-in. No subscriptions. Your notes stay yours.
-
-![Python](https://img.shields.io/badge/Python-3.11+-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-![Tests](https://img.shields.io/badge/Tests-80%2B-brightgreen)
-![Providers](https://img.shields.io/badge/Providers-Ollama%20%7C%20Groq%20%7C%20Gemini%20%7C%20NVIDIA%20NIM-purple)
+**Chat with your notes using RAG (Retrieval-Augmented Generation) powered by local or cloud LLMs.**
 
 ---
 
-## What it does
+## ✨ Features
 
-You type a question in your terminal. It searches your notes semantically, feeds the most relevant chunks to an LLM, and streams back an answer — with exact note paths cited.
+### Core Capabilities
+- **Hybrid Search**: Combines semantic similarity (70%) + keyword matching (30%) for best results
+- **Semantic Search**: Vector-based search using embeddings (768-4096 dimensions)
+- **Keyword Search**: BM25 algorithm for exact phrase matching
+- **AI Q&A**: Ask questions about your vault and get AI-powered answers with citations
+- **Citation Support**: All answers include source notes
 
-```
-you › what are my ideas about multi-agent AI systems?
+### LLM Providers (4 Supported)
+| Provider | Model | Embedding Dim | Cost | Speed | Setup |
+|----------|-------|---------------|------|-------|-------|
+| **Ollama** | Any local model | Varies | Free | Fast (local) | Easy |
+| **Groq** | Mixtral 8x7B | 768 | Free tier | Very Fast | API key |
+| **Google Gemini** | Gemini 1.5 Pro | 768 | Free tier | Fast | API key |
+| **NVIDIA NIM** | Llama 3.1 70B | 4096 | Enterprise | Very Fast | API key |
 
-━━━━━━━━━━━━━━━━ thinking ━━━━━━━━━━━━━━━━
-╭──────────────────────────────────────────╮
-│ The user wants ideas about multi-agent   │
-│ systems. I see relevant notes in         │
-│ Projects/AI-Agents.md and               │
-│ ObsidianForArch/AI/Agents/...           │
-╰──────────────────────────────────────────╯
+### Interfaces
+- **CLI**: Command-line interface with rich formatting
+- **Web UI**: Modern web interface at http://localhost:8000
+- **REST API**: OpenAPI-documented endpoints with Swagger UI
+- **MCP Server**: Integration with Claude Desktop and Cursor IDE
+- **Telegram Bot**: Chat with your vault via Telegram
 
-━━━━━━━━━━━━━━━━ answer ━━━━━━━━━━━━━━━━
-
-Based on your notes, here are your key ideas:
-
-- **Supervisor + worker pattern** [Projects/AI-Agents.md] — a
-  supervisor agent delegates tasks to specialized sub-agents
-- **CrewAI for prototyping** [AI Agent System — Tech Stack] —
-  best for enterprise multi-agent prototyping
-- **LangGraph for production** — better for large-scale stateful systems
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Sources: AI-Agents.md  AI Agent System — Tech Stack Decisions.md
-```
-
----
-
-## Features
-
-- 💬 **`brain chat`** — interactive Q&A with live thinking phase
-- 📄 **`brain summarize`** — summarize any note or folder
-- 🔗 **`brain related`** — find semantically similar notes
-- 🏷️ **`brain tag`** — auto-tag untagged notes via LLM
-- 📰 **`brain digest`** — daily/weekly digest of recent notes
-- 📋 **`brain list-notes`** — browse your indexed vault
-- 👁️ **`brain watch`** — file watcher, auto re-index on save
-- 🔀 **Multi-provider** — Ollama (local), Groq, Gemini, NVIDIA NIM
-- ⚡ **Thinking phase** — see the LLM reason before answering
-- 🏷️ **Frontmatter aware** — understands tags, aliases, wikilinks
-- 📍 **Source citations** — every answer shows which notes it came from
-- 🧪 **80+ tests** — pytest suite with GitHub Actions CI
-- 🔍 **Hybrid search** — combine semantic + BM25 keyword search for better recall
+### Production Features
+- **Rate Limiting**: 100 searches/hr, 50 questions/hr, 1000 stats/hr
+- **Query Caching**: 1-hour TTL, 1000-item cache
+- **Request Metrics**: Uptime, request counts, cache statistics
+- **Logging**: Structured logging for monitoring and debugging
+- **Error Handling**: Comprehensive input validation and error messages
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-### 1. Install Ollama and pull models
+### Prerequisites
+- Python 3.11+
+- Git
+- Your Obsidian vault
 
+### 1. Installation
 ```bash
-# Install: https://ollama.com
-ollama pull nomic-embed-text
-ollama pull llama3
-```
-
-### 2. Install obsidian-brain
-
-```bash
-# From source
-git clone https://github.com/harimsd07/obsidian-brain
+# Clone the repository
+git clone https://github.com/yourusername/obsidian-brain.git
 cd obsidian-brain
-python3.11 -m venv .venv && source .venv/bin/activate
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
 pip install -e .
 ```
 
-### 3. Run setup wizard
-
+### 2. Initialize
 ```bash
+# First time setup - choose your LLM provider
 brain init
+
+# Follow the wizard to select:
+# 1. Vault path (default: ~/Obsidian)
+# 2. LLM provider (Ollama, Groq, Gemini, NVIDIA NIM)
+# 3. API keys (if needed)
 ```
 
-Auto-detects your vault, lets you pick a provider, saves API keys to `.env`.
-
-### 4. Index your vault
-
+### 3. Index Your Vault
 ```bash
+# Ingest all notes into the vector database
 brain ingest
+
+# Or watch for changes and auto-index
+brain watch
 ```
 
-### 5. Start chatting
-
+### 4. Start Using
 ```bash
+# Quick question
+brain ask "What's in my Python notes?"
+
+# Interactive chat mode
 brain chat
-```
 
----
-
-## Commands
-
-### Core
-
-| Command | Description |
-|---|---|
-| `brain init` | First-time setup wizard |
-| `brain ingest` | Index full vault (run once, re-run after bulk changes) |
-| `brain ingest --force` | Re-index everything |
-| `brain watch` | File watcher — auto re-index on every save |
-| `brain stats` | Index stats + provider health check |
-| `brain --version` | Show version |
-
-### Explore
-
-| Command | Description |
-|---|---|
-| `brain chat` | Interactive Q&A with your notes |
-| `brain summarize --note "Projects/BankPrep"` | Summarize a single note |
-| `brain summarize --folder "Projects/"` | Summarize a folder |
-| `brain summarize --folder "Daily/" --since 7d` | Folder filtered by recency |
-| `brain related "arch-setup"` | Find semantically related notes |
-| `brain related "arch-setup" --top 10` | More results |
-| `brain tag` | Preview auto-suggested tags (dry-run) |
-| `brain tag --apply` | Write tags to frontmatter |
-| `brain tag --note "VIm text editor" --apply` | Tag a specific note |
-| `brain digest` | Digest of notes from last 24h |
-| `brain digest --since 7d` | Weekly digest |
-| `brain digest --since 7d --save` | Save digest as new note in vault |
-| `brain list-notes` | List all indexed notes |
-| `brain list-notes --folder "Linux"` | Filter by folder |
-| `brain list-notes --search "agent"` | Search by note name |
-
-### Chat commands (inside `brain chat`)
-
-| Command | Action |
-|---|---|
-| `/thinking` | Toggle thinking phase on/off |
-| `/sources` | Show all sources from last answer |
-| `/top N` | Change retrieval depth (default: 5) |
-| `/clear` | Clear conversation history |
-| `/model` | Show active provider and models |
-| `/help` | Show all commands |
-| `/exit` | Quit |
-
----
-
-## Provider comparison
-
-| Provider | Speed | Cost | Internet | Setup |
-|---|---|---|---|---|
-| Ollama (local) | Medium | Free forever | ❌ No | `ollama serve` |
-| Groq | ⚡ Fastest | Free tier | ✅ Yes | API key |
-| Gemini | Fast | Free tier | ✅ Yes | API key |
-| NVIDIA NIM | Very fast | Enterprise | ✅ Yes | API key |
-
-Switch providers anytime:
-
-```bash
-export BRAIN_LLM_PROVIDER=groq         # or gemini, ollama, nvidia-nim
-brain chat
-```
-
-> **Note:** Embedding always uses `nomic-embed-text` via Ollama locally.
-> If Ollama is not running, embedding falls back to Gemini (`text-embedding-004`),
-> NVIDIA NIM (`nv-embed-v1`), or `sentence-transformers` if installed.
-
----
-
-## Configuration
-
-All config via `.env` in project root (created by `brain init`):
-
-```bash
-BRAIN_VAULT_PATH=~/Documents/Obsidian/MyVault
-BRAIN_LLM_PROVIDER=ollama          # ollama | groq | gemini | nvidia-nim
-
-GROQ_API_KEY=your_key_here         # https://console.groq.com/keys
-GEMINI_API_KEY=your_key_here       # https://aistudio.google.com/app/apikey
-NVIDIA_NIM_API_KEY=your_key_here   # https://api.nvidia.com
-```
-
-### NVIDIA NIM Setup
-
-1. Get an API key from [NVIDIA API Gateway](https://api.nvidia.com)
-2. Set your key:
-```bash
-export NVIDIA_NIM_API_KEY=nvapi_xxxxx
-export BRAIN_LLM_PROVIDER=nvidia-nim
-brain chat
-```
-
-Or configure during `brain init` setup wizard.
-
-**Available NIM Models:**
-- **LLM:** `meta/llama-3.1-70b-instruct` (default), `mistralai/mixtral-8x22b-instruct-v0.1`, etc.
-- **Embedding:** `nvidia/nv-embed-v1` (default), `nvidia/nv-embed-qa-4`
-
-Override models in `.env`:
-```bash
-NVIDIA_NIM_LLM_MODEL=meta/llama-3.1-70b-instruct
-NVIDIA_NIM_EMBED_MODEL=nvidia/nv-embed-v1
-NVIDIA_NIM_BASE_URL=https://integrate.api.nvidia.com/v1
-```
-
-Advanced config in `brain/config.py`:
-
-```python
-CHUNK_SIZE = 512        # tokens per chunk
-CHUNK_OVERLAP = 64      # overlap between chunks
-TOP_K = 5               # chunks retrieved per query
-```
-
----
-
-## Project structure
-
-```
-obsidian-brain/
-├── brain/
-│   ├── config.py           # all configuration
-│   ├── utils.py            # markdown parser, frontmatter, wikilinks
-│   ├── chunker.py          # heading + token-based chunking
-│   ├── db.py               # ChromaDB wrapper
-│   ├── llm.py              # Ollama / Groq / Gemini / NVIDIA NIM provider routing
-│   ├── ingest.py           # vault ingestion pipeline
-│   ├── watcher.py          # file watcher daemon
-│   ├── retriever.py        # semantic search
-│   ├── exceptions.py       # human-readable errors
-│   └── commands/
-│       ├── init.py         # setup wizard
-│       ├── chat.py         # interactive Q&A REPL
-│       ├── summarize.py    # note + folder summarization
-│       ├── related.py      # semantic similarity search
-│       ├── tag.py          # auto-tagging
-│       └── digest.py       # daily/weekly digest
-├── tests/                  # 80+ pytest tests (fully mocked)
-├── .github/workflows/      # GitHub Actions CI
-├── CONTRIBUTING.md
-├── LICENSE
-└── pyproject.toml
-```
-
----
-
-## Integrations
-
-### MCP Server (Claude Desktop / Cursor IDE)
-
-Use your Obsidian vault directly in **Claude Desktop** or **Cursor IDE** via the Model Context Protocol (MCP):
-
-```bash
-brain mcp
-```
-
-This starts an MCP server exposing three tools:
-- **`search_vault`** — Semantic search across your notes
-- **`ask_vault`** — Ask questions with LLM-generated answers
-- **`get_vault_stats`** — View vault index statistics
-
-**To use with Claude Desktop:**
-
-1. Start the MCP server: `brain mcp`
-2. Add to Claude Desktop config (`~/.config/Claude/claude_desktop_config.json`):
-```json
-{
-  "mcpServers": {
-    "obsidian-brain": {
-      "command": "brain",
-      "args": ["mcp"]
-    }
-  }
-}
-```
-3. Restart Claude Desktop — your vault tools will appear in the tools menu
-
-**To use with Cursor IDE:**
-
-1. Start the MCP server: `brain mcp`
-2. Cursor automatically discovers MCP servers running on localhost
-
----
-
-### Web UI (`brain serve`)
-
-Start a browser-based interface to search and query your vault:
-
-```bash
+# Web UI
 brain serve
-```
 
-Then open http://localhost:8000 in your browser.
-
-**Features:**
-- 🔍 **Search tab** — semantic or hybrid search with result snippets
-- 💬 **Ask tab** — ask questions with LLM reasoning and source citations
-- 📊 **Stats tab** — view vault statistics
-
-**Options:**
-```bash
-brain serve --port 3000          # custom port
-brain serve --host 0.0.0.0       # listen on all interfaces
-```
-
----
-
-### Telegram Bot (`brain telegram`)
-
-Query your vault via Telegram on your phone:
-
-```bash
-# Get a bot token from @BotFather on Telegram, then:
-brain telegram --token YOUR_TOKEN
-
-# Or set in .env and run:
+# Telegram bot
 brain telegram
 ```
 
-**Commands:**
-- `/ask <question>` — Ask a question about your notes
-- `/search <query>` — Search for relevant notes
-- `/stats` — View vault statistics
-- `/help` — Show help message
+---
 
-**Example:**
-```
-you › /ask What is my project status?
-bot › Based on your notes, here are the key updates...
-      Sources: Projects/Status.md
-```
+## 📚 Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [INSTALLATION.md](./INSTALLATION.md) | Detailed setup and configuration guide |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | System design and component overview |
+| [COMMANDS.md](./COMMANDS.md) | CLI commands reference |
+| [WORKFLOW.md](./WORKFLOW.md) | Usage examples and workflows |
+| [API.md](./API.md) | REST API reference |
+| [DEVELOPMENT.md](./DEVELOPMENT.md) | Development setup and contribution guide |
 
 ---
 
-## Tips
+## 🎯 Usage Examples
 
-**Large folders hit token limits on free-tier Groq?**
-Target subfolders instead of the whole tree:
+### Search Your Vault
 ```bash
-brain summarize --folder "ObsidianForArch/AI/Agents" --limit 10
+# Hybrid search (semantic + keyword)
+brain ask "How do I use Python decorators?"
+
+# Get multiple results
+brain ask -k 10 "Git workflow best practices"
+
+# Raw output for piping
+brain ask --raw "My favorite tools"
 ```
-Or switch to Ollama which has no rate limits:
+
+### Interactive Chat
 ```bash
-export BRAIN_LLM_PROVIDER=ollama
-brain summarize --folder "ObsidianForArch/"
+# Start chat mode
+brain chat
+
+# Inside chat mode:
+/search python decorators
+/ask How do I use them?
+/top 10    # Set number of results
+/help      # Show commands
 ```
 
-**Note not found?**
-Use `brain list-notes --search "keyword"` to find the exact path,
-then pass it to `brain related` or `brain summarize`.
-
-**After using `brain tag --apply`:**
-Run `brain ingest` to re-index the updated frontmatter into ChromaDB.
-
-**After `brain digest --save`:**
-Run `brain ingest` to index the new digest note into the vault.
-
----
-
-## Roadmap
-
-- [x] Full vault ingestion with progress bar
-- [x] Semantic search via ChromaDB
-- [x] Multi-provider LLM (Ollama / Groq / Gemini / NVIDIA NIM)
-- [x] Interactive chat with thinking phase
-- [x] File watcher for incremental re-indexing
-- [x] Setup wizard (`brain init`)
-- [x] `brain summarize` — summarize a note or folder
-- [x] `brain related` — find semantically related notes
-- [x] `brain tag` — auto-tag untagged notes
-- [x] `brain digest` — daily digest of recent notes
-- [x] `brain list-notes` — browse vault structure
-- [x] Human-readable error handling
-- [x] 80+ tests + GitHub Actions CI
-- [x] Persistent chat history
-- [x] `brain ask` — one-shot Q&A without REPL
-- [x] Hybrid search (semantic + BM25 keyword)
-- [x] MCP server mode — use your vault in Claude Desktop / Cursor
-- [x] `brain serve` — web UI mode
-- [x] Telegram bot mode
-
----
-
-## Contributing
-
-Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
-
+### Web UI
 ```bash
-# Run tests
-pip install -e ".[dev]"
-pytest
+# Start web server
+brain serve --host 0.0.0.0 --port 8000
+
+# Open browser to http://localhost:8000
+# - Search tab: Semantic search
+# - Ask tab: AI-powered questions
+# - Stats tab: Vault statistics
+```
+
+### API Usage
+```bash
+# Search via API
+curl -X POST http://localhost:8000/api/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "python decorators",
+    "top_k": 5,
+    "hybrid": true
+  }'
+
+# Ask via API
+curl -X POST http://localhost:8000/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "How do decorators work?",
+    "top_k": 5,
+    "thinking": true
+  }'
 ```
 
 ---
 
-## License
+## 🔧 Configuration
 
-MIT — see [LICENSE](LICENSE)
+### Environment Variables
+```bash
+# Required
+BRAIN_VAULT_PATH=/path/to/obsidian/vault
+
+# LLM Provider (defaults: ollama)
+BRAIN_LLM_PROVIDER=groq              # ollama, groq, google, nvidia-nim
+BRAIN_LLM_MODEL=mixtral-8x7b-32768  # Provider-specific model
+
+# API Keys (if using cloud providers)
+GROQ_API_KEY=your_key_here
+GOOGLE_API_KEY=your_key_here
+NVIDIA_NIM_API_KEY=your_key_here
+
+# Search Settings
+BRAIN_HYBRID_SEARCH=true
+BRAIN_TOP_K=5
+
+# Web UI
+BRAIN_WEB_HOST=127.0.0.1
+BRAIN_WEB_PORT=8000
+```
+
+See [INSTALLATION.md](./INSTALLATION.md) for detailed configuration.
 
 ---
 
-*Built with Python · ChromaDB · Ollama · Typer · Rich*
+## 📊 Architecture Overview
 
-*Made by [@harimsd07](https://github.com/harimsd07)*
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        CLI / Web UI / API                    │
+└───────────────┬──────────────────────────────┬───────────────┘
+                │                              │
+        ┌───────▼─────────┐          ┌────────▼────────┐
+        │  brain.commands │          │  brain.web_ui   │
+        │  (ask, chat)    │          │  (REST API)     │
+        └───────┬─────────┘          └────────┬────────┘
+                │                              │
+        ┌───────▼──────────────────────────────▼─────────┐
+        │          brain.retriever (Retrieval)           │
+        │  - Semantic search (embeddings)                │
+        │  - Keyword search (BM25)                       │
+        │  - Hybrid results merging                      │
+        └───────┬──────────────────────────────┬─────────┘
+                │                              │
+        ┌───────▼──────────────┐    ┌─────────▼────────┐
+        │    brain.llm         │    │   brain.db       │
+        │  - Generate answers  │    │  (ChromaDB)      │
+        │  - Route providers   │    │  - Vector store  │
+        └──────────────────────┘    │  - Metadata      │
+                │                   └──────────────────┘
+        ┌───────▼────────────────────────┐
+        │   LLM Providers & Embeddings   │
+        │ - Ollama (local)               │
+        │ - Groq (cloud)                 │
+        │ - Google Gemini (cloud)        │
+        │ - NVIDIA NIM (enterprise)      │
+        └────────────────────────────────┘
+```
+
+For detailed architecture, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+---
+
+## 🛠️ Troubleshooting
+
+### Issue: "Vault not indexed"
+```bash
+# Run ingest to index all notes
+brain ingest
+```
+
+### Issue: Slow search queries
+```bash
+# Check your provider:
+# - Ollama running locally? (brain init)
+# - API keys valid? (check .env file)
+# - Network latency? (switch to faster provider)
+```
+
+### Issue: Rate limit errors (429)
+```bash
+# Wait 1 hour or:
+# - Reduce request frequency
+# - Use caching (automatic)
+# - Upgrade LLM provider
+```
+
+### Issue: Embedding dimension mismatch
+```bash
+# When switching providers:
+rm -rf data/chroma/
+brain ingest  # Re-index with new provider
+```
+
+---
+
+## 📈 Performance
+
+| Operation | Time | Provider |
+|-----------|------|----------|
+| Search | 1.5s | NVIDIA NIM |
+| Q&A | 2-5s | Groq/Gemini |
+| Cache hit | <1ms | Local |
+| Index (1000 notes) | ~30s | Local |
+
+---
+
+## 🤝 Contributing
+
+See [DEVELOPMENT.md](./DEVELOPMENT.md) for:
+- Setting up development environment
+- Running tests (149 test suite)
+- Making code contributions
+- Creating pull requests
+
+---
+
+## 📋 Project Status
+
+- ✅ Core retrieval working (hybrid search)
+- ✅ All 4 LLM providers integrated
+- ✅ Web UI with rate limiting and caching
+- ✅ REST API with OpenAPI documentation
+- ✅ CLI commands complete
+- ✅ Telegram bot integration
+- ✅ MCP server for Claude Desktop
+- ✅ 149 tests passing
+- ✅ Production-ready features (rate limiting, caching, logging)
+
+---
+
+## 📝 License
+
+MIT License - see LICENSE file
+
+---
+
+## 🙏 Acknowledgments
+
+Built with:
+- [ChromaDB](https://www.trychroma.com/) - Vector database
+- [FastAPI](https://fastapi.tiangolo.com/) - Web framework
+- [Typer](https://typer.tiangolo.com/) - CLI framework
+- [LangChain](https://www.langchain.com/) - LLM orchestration
+- [Ollama](https://ollama.ai/) - Local LLM support
+
+---
+
+## 📞 Support
+
+- **Issues**: Report bugs on GitHub
+- **Discussions**: Ask questions in GitHub Discussions
+- **Docs**: Check documentation files
+- **Examples**: See WORKFLOW.md
+
+---
+
+**Made with ❤️ for knowledge workers**
