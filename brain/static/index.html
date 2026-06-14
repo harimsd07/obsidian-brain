@@ -197,7 +197,7 @@
         .main-content {
             flex: 1;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             overflow: hidden;
         }
 
@@ -259,8 +259,68 @@
         .content-area {
             flex: 1;
             display: flex;
+            flex-direction: row;
+            overflow: hidden;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
             flex-direction: column;
             overflow: hidden;
+            border-right: 1px solid var(--border);
+        }
+
+        .sources-panel {
+            width: 280px;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sources-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sources-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 8px;
+        }
+
+        .source-item {
+            padding: 12px;
+            margin: 4px;
+            background-color: var(--bg-tertiary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-left: 3px solid transparent;
+        }
+
+        .source-item:hover {
+            background-color: rgba(139, 92, 246, 0.1);
+            border-left-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .source-item-icon {
+            font-size: 16px;
+            margin-right: 8px;
+        }
+
+        .sources-empty {
+            padding: 24px 16px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 13px;
         }
 
         .page {
@@ -995,6 +1055,7 @@
             </div>
 
             <div class="content-area">
+                <div class="chat-area">
                 <!-- CHAT PAGE -->
                 <div class="page active" id="chatPage">
                     <div class="messages-container" id="messagesContainer">
@@ -1069,6 +1130,15 @@
                         </div>
                     </div>
                 </div>
+                </div>
+
+                <!-- SOURCES PANEL -->
+                <div class="sources-panel" id="sourcesPanel">
+                    <div class="sources-header">📚 Sources</div>
+                    <div class="sources-list" id="sourcesList">
+                        <div class="sources-empty">No sources yet</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1098,6 +1168,10 @@
             const titles = { chat: 'Chat', search: 'Search', stats: 'Statistics' };
             document.getElementById('pageIcon').textContent = icons[page];
             document.getElementById('pageTitle').textContent = titles[page];
+
+            // Show/hide sources panel (only on chat page)
+            const sourcesPanel = document.getElementById('sourcesPanel');
+            sourcesPanel.style.display = page === 'chat' ? 'flex' : 'none';
 
             // Load stats if switching to stats page
             if (page === 'stats') {
@@ -1284,6 +1358,33 @@
             }
         }
 
+        function updateSourcesPanel(sources = []) {
+            const sourcesList = document.getElementById('sourcesList');
+            
+            if (!sources || sources.length === 0) {
+                sourcesList.innerHTML = '<div class="sources-empty">No sources yet</div>';
+                return;
+            }
+
+            // Remove duplicates
+            const uniqueSources = [];
+            const seenIds = new Set();
+            sources.forEach(source => {
+                const id = source.doc_id || source.title;
+                if (!seenIds.has(id)) {
+                    uniqueSources.push(source);
+                    seenIds.add(id);
+                }
+            });
+
+            sourcesList.innerHTML = uniqueSources.map(source => `
+                <div class="source-item" title="${source.doc_id || source.title}">
+                    <span class="source-item-icon">📄</span>
+                    <span>${source.title || source.doc_id}</span>
+                </div>
+            `).join('');
+        }
+
         function addMessage(text, role, sources = []) {
             if (messagesContainer.querySelector('.empty-state')) {
                 messagesContainer.innerHTML = '';
@@ -1316,17 +1417,9 @@
                     <div class="message-text markdown-content">${textContent}</div>
             `;
 
+            // Update sources panel instead of showing inline
             if (sources && sources.length > 0) {
-                content += '<div class="message-sources">';
-                sources.forEach(source => {
-                    content += `
-                        <div class="source-chip" title="${source.doc_id}">
-                            <span>📄</span>
-                            <span>${source.title || source.doc_id}</span>
-                        </div>
-                    `;
-                });
-                content += '</div>';
+                updateSourcesPanel(sources);
             }
 
             content += '</div>';
