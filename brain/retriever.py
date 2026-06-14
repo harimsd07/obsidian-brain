@@ -125,6 +125,20 @@ def retrieve(query: str, n: int = TOP_K, where=None, hybrid: bool = True) -> lis
     Returns:
         List of RetrievedChunk sorted by combined score
     """
+    # Input validation
+    if not query or not isinstance(query, str):
+        return []
+    
+    query = query.strip()
+    if not query:
+        return []
+    
+    if n <= 0:
+        n = TOP_K
+    
+    if n > 1000:
+        n = 1000  # Limit to avoid performance issues
+    
     if not hybrid:
         return _semantic_retrieve(query, n, where)
     
