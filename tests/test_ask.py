@@ -87,7 +87,7 @@ class TestAskRetrieval:
              patch("brain.commands.ask.generate", return_value=iter(["Answer."])), \
              patch("brain.commands.ask.build_context", return_value="context"):
             run_ask("test question", top_k=7, thinking=False, raw=True)
-            mock_retrieve.assert_called_once_with("test question", top_k=7, hybrid=True)
+            mock_retrieve.assert_called_once_with("test question", n=7, hybrid=True)
 
     def test_default_top_k_is_10(self, mock_db_with_chunks, mock_chunks):
         from brain.commands.ask import run_ask
@@ -96,7 +96,7 @@ class TestAskRetrieval:
              patch("brain.commands.ask.generate", return_value=iter(["Answer."])), \
              patch("brain.commands.ask.build_context", return_value="context"):
             run_ask("test question", thinking=False, raw=True)
-            mock_retrieve.assert_called_once_with("test question", top_k=10, hybrid=True)
+            mock_retrieve.assert_called_once_with("test question", n=10, hybrid=True)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

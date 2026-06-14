@@ -305,7 +305,7 @@ def run_chat(resume: bool = False):
 
         # --- Retrieval ---
         with console.status("[dim]Searching your notes...[/]", spinner="dots"):
-            chunks = retrieve(query, n=top_k)
+            chunks = retrieve(query, n=top_k, hybrid=True)
 
         if not chunks:
             console.print("[yellow]No relevant notes found. Try rephrasing.[/]")

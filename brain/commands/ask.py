@@ -64,9 +64,9 @@ def run_ask(
     # ── Retrieve relevant chunks ──────────────────────────────────────────────
     if not raw:
         with console.status("[dim]Searching vault...[/]", spinner="dots"):
-            chunks = retrieve(question, top_k=top_k, hybrid=hybrid)
+            chunks = retrieve(question, n=top_k, hybrid=hybrid)
     else:
-        chunks = retrieve(question, top_k=top_k, hybrid=hybrid)
+        chunks = retrieve(question, n=top_k, hybrid=hybrid)
 
     if not chunks:
         if raw:
