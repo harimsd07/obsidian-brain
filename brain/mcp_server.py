@@ -9,7 +9,7 @@ from pathlib import Path
 
 from mcp.server import Server
 from mcp.types import (
-    Tool, TextContent, ToolResult, ListToolsResult,
+    Tool, TextContent, ToolResultContent, ListToolsResult,
     CallToolResult, ListResourcesResult, Resource, ReadResourceResult
 )
 
