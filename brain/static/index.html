@@ -1150,9 +1150,10 @@
             .then(data => {
                 removeLoading();
                 if (data.success) {
-                    addMessage(data.data.answer, 'assistant', data.data.sources);
+                    // Response is flat: {success, answer, sources, error}
+                    addMessage(data.answer || "No answer received", 'assistant', data.sources || []);
                 } else {
-                    addMessage('⚠️ ' + data.error, 'error');
+                    addMessage('⚠️ ' + (data.error || 'Unknown error'), 'error');
                 }
             })
             .catch(err => {
