@@ -1247,21 +1247,41 @@
         }
 
         // Configure marked for markdown rendering
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-            highlight: function(code, lang) {
-                if (lang && hljs.getLanguage(lang)) {
-                    return hljs.highlight(code, { language: lang }).value;
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                highlight: function(code, lang) {
+                    if (typeof hljs !== 'undefined') {
+                        if (lang && hljs.getLanguage(lang)) {
+                            return hljs.highlight(code, { language: lang }).value;
+                        }
+                        return hljs.highlightAuto(code).value;
+                    }
+                    return code;
                 }
-                return hljs.highlightAuto(code).value;
-            }
-        });
+            });
+        }
 
         function renderMarkdown(text) {
-            const html = marked.parse(text);
-            const clean = DOMPurify.sanitize(html);
-            return clean;
+            try {
+                const html = marked.parse(text);
+                // Use DOMPurify if available, otherwise use simple escaping
+                if (typeof DOMPurify !== 'undefined') {
+                    return DOMPurify.sanitize(html);
+                } else {
+                    // Fallback: simple sanitization without DOMPurify
+                    const div = document.createElement('div');
+                    div.innerHTML = html;
+                    // Remove script tags
+                    const scripts = div.querySelectorAll('script');
+                    scripts.forEach(script => script.remove());
+                    return div.innerHTML;
+                }
+            } catch (e) {
+                console.error('Markdown rendering error:', e);
+                return escapeHtml(text);
+            }
         }
 
         function addMessage(text, role, sources = []) {
@@ -1281,7 +1301,8 @@
 
             // Render markdown for assistant messages, escape HTML for user messages
             let textContent;
-            if (role === 'assistant' || role === 'assistant-thinking') {
+            // Render markdown for assistant messages (only if marked is available)
+            if ((role === 'assistant' || role === 'assistant-thinking') && typeof marked !== 'undefined') {
                 textContent = renderMarkdown(text);
             } else if (role === 'error') {
                 textContent = escapeHtml(text);
