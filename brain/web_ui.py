@@ -1,6 +1,6 @@
 """
 Web UI server for Obsidian Brain.
-Provides a simple web interface to search and query your vault.
+Provides a REST API and web interface to search and query your vault.
 """
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
@@ -20,6 +20,7 @@ from brain.llm import generate
 from brain.middleware import (
     rate_limiter, query_cache, metrics, LIMITS
 )
+from brain.api_docs import get_openapi_schema
 
 # Configure logging
 logging.basicConfig(
@@ -29,38 +30,67 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Obsidian Brain",
-    description="Chat with your Obsidian vault with rate limiting and caching"
+    title="Obsidian Brain API",
+    description="Chat with your Obsidian vault with rate limiting and caching",
+    version="1.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json"
 )
+
+# Apply custom OpenAPI schema
+app.openapi = lambda: get_openapi_schema(app)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Request/Response Models
 # ──────────────────────────────────────────────────────────────────────────────
 
 class SearchRequest(BaseModel):
-    query: str = Field(..., min_length=0, max_length=10000)
-    top_k: int = Field(default=5, ge=1, le=1000)
-    hybrid: bool = True
+    """Search request model."""
+    query: str = Field(..., min_length=0, max_length=10000, description="Search query text")
+    top_k: int = Field(default=5, ge=1, le=1000, description="Number of results to return (1-1000)")
+    hybrid: bool = Field(default=True, description="Use hybrid search (semantic + keyword). If False, semantic only.")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "python functions",
+                "top_k": 5,
+                "hybrid": True
+            }
+        }
 
 
 class AskRequest(BaseModel):
-    question: str = Field(..., min_length=1, max_length=10000)
-    thinking: bool = True
-    top_k: int = Field(default=5, ge=1, le=1000)
+    """Ask question request model."""
+    question: str = Field(..., min_length=1, max_length=10000, description="Question to ask about your vault")
+    thinking: bool = Field(default=True, description="Show AI reasoning process (wrapped in <think> tags)")
+    top_k: int = Field(default=5, ge=1, le=1000, description="Number of notes to use as context (1-1000)")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "How do I create a function in Python?",
+                "thinking": True,
+                "top_k": 5
+            }
+        }
 
 
 class SearchResponse(BaseModel):
-    success: bool
-    chunks: list
-    sources: list
-    error: Optional[str] = None
+    """Search response model."""
+    success: bool = Field(..., description="Whether the request was successful")
+    chunks: list = Field(default=[], description="List of retrieved chunks with note_title, heading, file_path, text, score")
+    sources: list = Field(default=[], description="List of unique sources (note titles and file paths)")
+    error: Optional[str] = Field(default=None, description="Error message if request failed")
 
 
 class AskResponse(BaseModel):
-    success: bool
-    answer: str
-    sources: list
-    error: Optional[str] = None
+    """Ask response model."""
+    success: bool = Field(..., description="Whether the request was successful")
+    answer: str = Field(default="", description="AI-generated answer to your question")
+    sources: list = Field(default=[], description="List of notes used for the answer")
+    error: Optional[str] = Field(default=None, description="Error message if request failed")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
