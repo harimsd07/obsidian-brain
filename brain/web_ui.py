@@ -11,6 +11,7 @@ from typing import Optional
 import json
 from pathlib import Path
 import logging
+import os
 
 from brain import db
 from brain.config import VAULT_PATH, HYBRID_SEARCH
@@ -44,6 +45,29 @@ app.openapi = lambda: get_openapi_schema(app)
 # ──────────────────────────────────────────────────────────────────────────────
 # Request/Response Models
 # ──────────────────────────────────────────────────────────────────────────────
+
+# Root route - serve modern UI
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    """Serve the main web UI."""
+    html_path = Path(__file__).parent / "static" / "index.html"
+    if html_path.exists():
+        with open(html_path, 'r') as f:
+            return f.read()
+    else:
+        return """
+        <html>
+            <body style="background: #0d0d0d; color: #ececec; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+                <div style="text-align: center;">
+                    <h1 style="font-size: 48px; margin-bottom: 20px;">🧠 Obsidian Brain</h1>
+                    <p style="font-size: 18px; margin-bottom: 30px;">Web UI is loading...</p>
+                    <p style="color: #b4b4b4;">
+                        API available at: <a href="/api/docs" style="color: #8b5cf6;">http://localhost:8009/api/docs</a>
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
 
 class SearchRequest(BaseModel):
     """Search request model."""
