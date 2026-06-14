@@ -6,7 +6,7 @@ Provides a simple web interface to search and query your vault.
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 import json
 from pathlib import Path
@@ -24,15 +24,15 @@ app = FastAPI(title="Obsidian Brain", description="Chat with your Obsidian vault
 # ──────────────────────────────────────────────────────────────────────────────
 
 class SearchRequest(BaseModel):
-    query: str
-    top_k: int = 5
+    query: str = Field(..., min_length=0, max_length=10000)
+    top_k: int = Field(default=5, ge=1, le=1000)
     hybrid: bool = True
 
 
 class AskRequest(BaseModel):
-    question: str
+    question: str = Field(..., min_length=1, max_length=10000)
     thinking: bool = True
-    top_k: int = 5
+    top_k: int = Field(default=5, ge=1, le=1000)
 
 
 class SearchResponse(BaseModel):
